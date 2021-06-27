@@ -110,4 +110,5 @@ export default {
 .drawer-card {
   overflow: auto;
 }
+
 </style>

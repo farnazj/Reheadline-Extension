@@ -3,7 +3,7 @@
     <v-row no-gutters justify="center" class="pt-5">
         <v-col cols="10" sm="6" md="4" lg="3">
 
-        <v-radio-group v-model="selectedHeadlineSource">
+        <!-- <v-radio-group v-model="selectedHeadlineSource">
             <template v-slot:label>
                 <div>I'd like to see alternative headlines from:</div>
             </template>
@@ -13,10 +13,10 @@
                     <v-row no-gutters class="my-0 caption">{{headlineSource.text}}</v-row>
                 </template>
             </v-radio>
-        </v-radio-group>
+        </v-radio-group> -->
 
         <v-row class="mt-1" no-gutters>
-            <p class="body-2">To change the sources you follow or trust you can visit the Sources page on
+            <p class="body-2">To change the sources you follow you can visit the Sources page on
                 <a :href="sourcesLink" class="ml-1 custom-link" target="_blank">{{siteName}}
                 </a>.
             </p>

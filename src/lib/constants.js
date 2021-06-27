@@ -3,7 +3,7 @@ const BASE_URL = `https://developer.trustnet.csail.mit.edu`
 //const CLIENT_URL = `http://localhost:8080`;
 const CLIENT_URL = `https://trustnet.csail.mit.edu`;
 
-const SITE_NAME = 'Trustnet';
+const SITE_NAME = 'Reheadline';
 const LENGTH_TO_HASH = 25;
 const MAX_TITLE_LENGTH = 180;
 const MIN_TITLE_LENGTH = 18;

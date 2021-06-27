@@ -9,6 +9,8 @@
     right: 0px;
     z-index: 99999;
     overflow: auto;
+    top: 0px;
+    width: initial !important;
 }
 
 /* 
