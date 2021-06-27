@@ -111,7 +111,12 @@ export default {
 
         browser.runtime.sendMessage({
           type: 'unfollow',
-          data: payload
+          data: {
+            reqBody: {
+              username: payload.userName
+            },
+            id: payload.id
+          }
         })
         .then(() => {
           let dispatchProms = [

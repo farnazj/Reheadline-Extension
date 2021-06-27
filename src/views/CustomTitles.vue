@@ -67,7 +67,7 @@
                                         
                                         <v-spacer></v-spacer>
                                         <v-btn x-small v-if="titleObj.author.id != user.id && isFollowed(titleObj.author)" outlined class="ml-2"
-                                        @click="unfollowUser({ username: titleObj.author.userName })"> Unfollow</v-btn>
+                                        @click="unfollowUser(titleObj.author)"> Unfollow</v-btn>
                                     </v-row>
 
                                     <v-row no-gutters class="mt-1" :key="`title-text-${index}`">

@@ -3,6 +3,7 @@ import titleServices from './services/titleServices'
 import sourceServices from './services/sourceServices'
 import relationServices from './services/relationServices'
 import preferencesServices from './services/preferencesServices'
+import studyServices from './services/studyServices'
 
 browser.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   console.log('Hello from the background')
@@ -69,8 +70,9 @@ browser.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   }
   else if (request.type == 'unfollow') {
     return new Promise((resolve, reject) => {
-      relationServices.unfollow(request.data)
+      relationServices.unfollow(request.data.reqBody)
       .then(response => {
+        studyServices.logUserInteraction({ type: 'unfollow', data: request.data.id });
         resolve(response.data);
       })
     })
