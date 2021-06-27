@@ -61,14 +61,20 @@ browser.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   else if (request.type == 'get_followers') {
     return new Promise((resolve, reject) => {
       let authUsername = JSON.parse(localStorage.getItem('trustnetAuthToken')).userName;
-      console.log(authUsername, 'auth user name is ')
-      relationServices.getFollowers({username: authUsername})
+      relationServices.getFollowers({ username: authUsername })
       .then(response => {
         resolve(response.data);
       })
     })
   }
-
+  else if (request.type == 'unfollow') {
+    return new Promise((resolve, reject) => {
+      relationServices.unfollow(request.data)
+      .then(response => {
+        resolve(response.data);
+      })
+    })
+  }
   else if (request.type == 'get_title_hash_matches') {
     return new Promise((resolve, reject) => {
       titleServices.getTitleHashMatches(request.data)

@@ -64,6 +64,10 @@
                                         <span class="ml-2 caption grey--text text--darken-3"> {{timeElapsed(titleObj.lastVersion.createdAt)}} </span>
                                         <span v-if="titleObj.history.length" class="ml-2 caption grey--text text--darken-1 interactable"
                                             @click.stop="showHistory(titleObj)">Edited</span>
+                                        
+                                        <v-spacer></v-spacer>
+                                        <v-btn x-small v-if="titleObj.author.id != user.id && isFollowed(titleObj.author)" outlined class="ml-2"
+                                        @click="unfollowUser({ username: titleObj.author.userName })"> Unfollow</v-btn>
                                     </v-row>
 
                                     <v-row no-gutters class="mt-1" :key="`title-text-${index}`">
@@ -174,7 +178,8 @@ import deleteConfirmationDialog from '@/components/DeleteConfirmationDialog'
 import titleHistory from '@/components/TitleHistory'
 import titleEndorsers from '@/components/TitleEndorsers'
 import timeHelpers from '@/mixins/timeHelpers'
-// import titleServices from '@/services/titleServices'
+import utils from '@/services/utils'
+
 import { mapState, mapGetters, mapActions } from 'vuex'
 import { mdiWindowClose, mdiPencil, mdiTrashCanOutline, mdiCheck,
     mdiCloseCircleOutline, mdiThumbUpOutline, mdiThumbUp } from '@mdi/js';
@@ -266,11 +271,13 @@ export default {
         ])
     },
     methods: {
+        isFollowed: function(source) {
+            return utils.isFollowed(source);
+        },
         returnToHome: function() {
    
             this.setTitlesDialogVisibility(false);
             this.$router.push({ name: 'home' });
-            
         },
         postNewTitle: function() {
             if (this.$refs.newTitleForm.validate()) {
@@ -462,6 +469,13 @@ export default {
             
             this.setEndorsersVisibility(true);
         },
+        unfollowUser: function(user) {
+
+            this.unfollow(user);
+            this.modifyCustomTitleInPage({
+                standaloneTitleId: this.associatedStandaloneTitle.id
+            });
+        },
         ...mapActions('titles', [
             'setTitlesDialogVisibility',
             'addTitleToPage',
@@ -473,6 +487,9 @@ export default {
             'populateTitleHistory',
             'addUserAsCustomTitleEndorser',
             'removeUserAsCustomTitleEndorser'
+        ]),
+        ...mapActions('relatedSources', [
+            'unfollow'
         ])
 
     },

@@ -125,7 +125,7 @@ export default {
         authUserIndex = state.titles[standaloneTitleIndex].sortedCustomTitles[sortedCustomTitleIndex].sortedEndorsers.findIndex(endorser => 
             endorser.id == payload.authUser.id)
         state.titles[standaloneTitleIndex].sortedCustomTitles[sortedCustomTitleIndex].sortedEndorsers.splice(authUserIndex, 1);
-    }
+    },
 
   },
   actions: {
@@ -397,7 +397,11 @@ export default {
         let authUser = context.rootGetters['auth/user'];
         payload.authUser = authUser;
         context.commit('remove_user_as_endorser', payload);
-    }
+    },
+
+    // removeTitlesByUser: (context, payload) => {
+       
+    // }
   
   }
 }

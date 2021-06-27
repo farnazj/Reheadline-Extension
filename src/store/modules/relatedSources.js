@@ -95,12 +95,36 @@ export default {
             type: 'get_followers'
         })
         .then(response => {
-            console.log('followers respo', response)
             context.commit('populate_followers', response);
             resolve();
         })
         .catch(err => {
           console.log(err)
+          reject();
+        })
+      })
+    },
+
+    unfollow: (context, payload) => {
+
+      return new Promise((resolve, reject) => {
+
+        browser.runtime.sendMessage({
+          type: 'unfollow',
+          data: payload
+        })
+        .then(() => {
+          let dispatchProms = [
+            context.dispatch('fetchFollows'),
+            context.dispatch('fetchTrusteds')
+          ];
+          Promise.all(dispatchProms)
+          .then(() => {
+            resolve();
+          })
+        })
+        .catch(err => {
+          console.log(err);
           reject();
         })
       })
