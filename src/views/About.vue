@@ -56,7 +56,7 @@ export default {
       return consts.SITE_NAME;
     },
     sourcesLink: function() {
-      return `${consts.CLIENT_URL}/sources`;
+      return `${consts.CLIENT_URL}/users`;
     },
   }
 
