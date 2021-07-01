@@ -27,7 +27,7 @@
         <v-row no-gutters class="mt-6">
             <v-combobox v-model="blackListedWebsites" small-chips dense :hide-no-data="true"
                 label="Disable the extension on certain domains" multiple persistent-hint
-                hint="e.g., google.com or www.google.com"
+                hint="e.g., google.com"
             >
             <template v-slot:selection="{ attrs, item, select, selected }">
                 <v-chip v-bind="attrs"

@@ -9,7 +9,11 @@ export default {
   methods: {
     fetchTitlesAndRelationships() {
 
-      this.setUpPageUrl();
+      this.setUpPageUrl()
+      .then(() => {
+        this.IsGloballyWhiteListed();
+      });
+
       this.setUpObserver();
 
       if (!this.followedSources.length)
@@ -32,16 +36,18 @@ export default {
             pageHostname.includes(blacklistedWebsite)
           )
         }
+        
+        this.setBlackListStatus(pageIsBlackListed);
         console.info('is page blacklisted:', pageIsBlackListed)
 
         if (!pageIsBlackListed) {
 
-            if ( !this.titles.length && !this.titlesFetched ) {
-              this.setUpTitles()
-              .then( () => {
-                  this.setTitlesFetched(true);
-              })
-            }
+          if ( !this.titles.length && !this.titlesFetched ) {
+            this.setUpTitles()
+            .then( () => {
+                this.setTitlesFetched(true);
+            })
+          }
         }
         
       })
@@ -57,7 +63,9 @@ export default {
       'fetchFollowers'
     ]),
     ...mapActions('pageDetails', [
-      'setUpPageUrl'
+      'setUpPageUrl',
+      'IsGloballyWhiteListed',
+      'setBlackListStatus'
     ]),
     ...mapActions('pageObserver', [
         'setUpObserver'

@@ -71,7 +71,7 @@ export default {
   components: {
     'custom-toolbar': customToolbar
   },
-  data(){
+  data() {
     return {
       username : "",
       password : "",
@@ -94,7 +94,7 @@ export default {
     })
     .then(() => {
       this.fetchTitlesAndRelationships();
-      this.$router.push({ name: 'home' });
+      this.$router.push({ name: 'Home' });
     })
     .catch(err => {
       this.alertMessage = err.message;

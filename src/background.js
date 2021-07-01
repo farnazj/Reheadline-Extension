@@ -4,6 +4,7 @@ import sourceServices from './services/sourceServices'
 import relationServices from './services/relationServices'
 import preferencesServices from './services/preferencesServices'
 import studyServices from './services/studyServices'
+import originServices from './services/originServices'
 
 browser.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   console.log('Hello from the background')
@@ -235,7 +236,29 @@ browser.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         reject({ message: err });
       })
     })
-    
+  }
+  else if (request.type == 'is_url_whitelisted') {
+    return new Promise((resolve, reject) => {
+      originServices.isUrlWhiteListed(request.data.headers)
+      .then(res => {
+        console.log(res, res.data)
+        resolve(res.data);
+      })
+      .catch(err => {
+        reject({ message: err });
+      })
+    })
+  }
+  else if (request.type == 'add_url_to_whitelist') {
+    return new Promise((resolve, reject) => {
+      originServices.addUrlToWhiteLists(request.data.reqBody)
+      .then(res => {
+        resolve(res);
+      })
+      .catch(err => {
+        reject({ message: err });
+      })
+    })
   }
 
 })

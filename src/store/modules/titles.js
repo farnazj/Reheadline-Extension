@@ -230,9 +230,9 @@ export default {
             let allProms = [];
             let titlesFoundOnPage = [];
             candidateTitles.forEach(candidateTitle => {
-            let replacementCount = domHelpers.findAndReplaceTitle(candidateTitle)
-            if (replacementCount)
-                titlesFoundOnPage.push(candidateTitle);
+                let replacementCount = domHelpers.findAndReplaceTitle(candidateTitle)
+                if (replacementCount)
+                    titlesFoundOnPage.push(candidateTitle);
             })
     
             console.log('Server returned titles found on page:', titlesFoundOnPage);
@@ -240,7 +240,10 @@ export default {
             .then(() => {
                 context.commit('populate_titles', titlesFoundOnPage);
                 
-                domHelpers.identifyPotentialTitles();
+                let urlIsWhiteListed = context.rootState.pageDetails.isWhiteListed;
+                if (urlIsWhiteListed)
+                    domHelpers.identifyPotentialTitles();
+                
                 resolve();
             })
     
