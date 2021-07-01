@@ -15,7 +15,7 @@ export default {
       state.isWhiteListed = status;
     },
     set_black_list_status: (state, status) => {
-      state.isWhiteListed = status;
+      state.isBlacklisted = status;
     }
   },
   actions: {
@@ -37,7 +37,7 @@ export default {
           }
         })
         .then( response => {
-          console.log('is it whitelisted', response)
+          // console.log('is it whitelisted', response)
             context.commit('set_white_list_status', response);
             resolve();
         }).catch(error => {
@@ -71,6 +71,7 @@ export default {
 
     setBlackListStatus: function(context, payload) {
       return new Promise((resolve, reject) => {
+        // console.log('inja tu pageDetails*******', payload)
         context.commit('set_black_list_status', payload);
         resolve();
       })
