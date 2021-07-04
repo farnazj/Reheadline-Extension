@@ -73,7 +73,7 @@ browser.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     return new Promise((resolve, reject) => {
       relationServices.unfollow(request.data.reqBody)
       .then(response => {
-        studyServices.logUserInteraction({ type: 'unfollow', data: request.data.id });
+        studyServices.logUserInteraction({ type: 'unfollow', data: request.data.id, client: 'extension' });
         resolve(response.data);
       })
     })
@@ -260,5 +260,26 @@ browser.runtime.onMessage.addListener(function (request, sender, sendResponse) {
       })
     })
   }
-
+  else if (request.type == 'log_interaction') {
+    return new Promise((resolve, reject) => {
+      studyServices.logUserInteraction(request.interaction)
+      .then(res => {
+        resolve(res);
+      })
+      .catch(err => {
+        reject({ message: err });
+      })
+    })
+  }
+  else if (request.type == 'update_standalone_title_status') {
+    return new Promise((resolve, reject) => {
+      titleServices.updateStandaloneTitleStatus(request.data.params, request.data.reqBody)
+      .then(res => {
+        resolve(res);
+      })
+      .catch(err => {
+        reject({ message: err });
+      })
+    })
+  }
 })

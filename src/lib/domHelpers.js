@@ -171,7 +171,8 @@ function getFuzzyTextSimilarToHeading(targetTitleText, isSearchingForServerTitle
     return (finalResults[0] && finalResults[0].score <= scoreThreshold) ? finalResults[0].item : null;
 }
 
-function findAndReplaceTitle(title, remove) {
+function findAndReplaceTitle(title, remove, withheld) {
+
     let results = getElementsContainingText(title.text);
     results = results.filter(el => !(['SCRIPT', 'TITLE'].includes(el.nodeName)));
 
@@ -193,16 +194,54 @@ function findAndReplaceTitle(title, remove) {
             //if headline has not been modified yet
             if (!el.classList.contains('headline-modified')) {
 
-                const originalTitle = el.textContent;
-                el.textContent = "";
-                let newFirstChild = addAltTitleNodeToHeadline(title)
+                let newFirstChild, newSecondChild;
+                if (!withheld) {
+                    const originalTitle = el.textContent;
+                    el.textContent = "";
+                    newFirstChild = addAltTitleNodeToHeadline(title)
+    
+                    newSecondChild = document.createElement('del');
+                    newSecondChild.classList.add('headline-modified');
+                    newSecondChild.appendChild(document.createTextNode(originalTitle));
+                }
 
-                const newSecondChild = document.createElement('del');
-                newSecondChild.classList.add('headline-modified');
-                newSecondChild.appendChild(document.createTextNode(originalTitle));
+                let clickTarget = withheld ? el : newSecondChild;
+                /*
+                Because the class headline-modified is not set on a title that is withheld
+                for experimental purposes, this part of the code can repeatedly get executed
+                as the page changes and therefore, multiple click event handlers can be added
+                to the title element. To avoid this, a special attribute is set on the title element
+                even if the title is not modified.
+                */
+                let customAttr = el.getAttribute('data-reheadline-click-check');
+                if (withheld && !customAttr)
+                    el.setAttribute('data-reheadline-click-check', true);
+                /*
+                if not on the actual article's page, e.g., on a homepage of a news website
+                */
+                if (title.Post.url != window.location.href.split('?')[0] && !customAttr) {
 
-                el.appendChild(newFirstChild);
-                el.appendChild(newSecondChild);
+                    console.log('headline clicked on')
+                    clickTarget.addEventListener('click', function(ev) {
+                        browser.runtime.sendMessage({
+                            type: 'log_interaction',
+                            interaction: {
+                                type: 'visit_article', 
+                                data: { 
+                                    target: title.Post.url,
+                                    source: window.location.href
+                                },
+                                client: 'extension'
+                            }
+                        })
+                    })
+                }
+                
+                if (!withheld) {
+                    el.appendChild(newFirstChild);
+                    el.appendChild(newSecondChild);
+                }
+
             }
             else {
                 /*if headline has already been modified, the displayed alt headline either needs to change to another 

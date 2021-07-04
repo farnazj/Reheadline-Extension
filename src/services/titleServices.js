@@ -1,3 +1,4 @@
+import api from './api'
 import Api from './api'
 
 export default {
@@ -54,4 +55,11 @@ export default {
       headers: headers
     })
   },
+  updateStandaloneTitleStatus(params, reqBody) {
+    return Api().post(`/custom-titles/headline-status/${params.standaloneTitleId}`,
+    reqBody,
+    {
+      withCredentials: true
+    })
+  }
 }

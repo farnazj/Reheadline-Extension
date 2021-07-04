@@ -27,7 +27,6 @@ export default {
       }
       else {
         this.fetchTitlesAndRelationships();
-        console.log('injaaaaaaa->>>>>>')
         this.$router.push({ name: 'Home' });
       }
     });

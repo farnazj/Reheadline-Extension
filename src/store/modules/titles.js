@@ -9,6 +9,7 @@ export default {
   state() {
     return {
       titles: [],
+      titlesStatuses: {},
       titlesDialogVisible: false,
       titlesFetched: false,
       displayedTitle: {
@@ -91,6 +92,13 @@ export default {
         state.titleHistoryState = Object.assign({}, newObj);
     },
 
+
+    set_title_statuses: (state, titleStatuses) => {
+        titleStatuses.forEach(status => {
+            state.titlesStatuses[status.StandaloneTitleId] = status;
+        })
+    },
+
     add_user_as_endorser: (state, payload) => {
         
         let standaloneTitleIndex = state.titles.findIndex(title => 
@@ -125,7 +133,7 @@ export default {
         authUserIndex = state.titles[standaloneTitleIndex].sortedCustomTitles[sortedCustomTitleIndex].sortedEndorsers.findIndex(endorser => 
             endorser.id == payload.authUser.id)
         state.titles[standaloneTitleIndex].sortedCustomTitles[sortedCustomTitleIndex].sortedEndorsers.splice(authUserIndex, 1);
-    },
+    }
 
   },
   actions: {
@@ -162,7 +170,8 @@ export default {
               data: payload
           })
           .then(resp => {
-              let candidateTitles = resp;
+              let candidateTitles = resp.titles;
+              context.commit('set_title_statuses', resp.statuses)
               resolve(candidateTitles);
           })
           .catch(err => {
@@ -230,9 +239,32 @@ export default {
             let allProms = [];
             let titlesFoundOnPage = [];
             candidateTitles.forEach(candidateTitle => {
-                let replacementCount = domHelpers.findAndReplaceTitle(candidateTitle)
-                if (replacementCount)
+
+                let withHeldVal = context.state.titlesStatuses[candidateTitle.id].isWithheld
+                
+                let replacementCount = domHelpers.findAndReplaceTitle(candidateTitle, false , withHeldVal);
+                if (replacementCount) {
                     titlesFoundOnPage.push(candidateTitle);
+
+                    browser.runtime.sendMessage({
+                        type: 'update_standalone_title_status',
+                        data: {
+                            params: {
+                                standaloneTitleId: candidateTitle.id
+                            },
+                            reqBody: {
+                                isEncountered: true
+                            }
+                        }
+                    })
+                    .then(resp => {
+                        resolve(resp);
+                    })
+                    .catch(err => {
+                        console.log(err)
+                        reject();
+                    })
+                }
             })
     
             console.log('Server returned titles found on page:', titlesFoundOnPage);
@@ -256,7 +288,7 @@ export default {
   
           let docInnerText = document.body.innerText;
   
-          context.dispatch('hashPageContent', {content: docInnerText})
+          context.dispatch('hashPageContent', { content: docInnerText })
           .then( allHashes => {
               context.dispatch('getTitleMatches', { titlehashes: allHashes })
                 .then(candidateTitles => {
