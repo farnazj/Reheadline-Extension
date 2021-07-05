@@ -179,6 +179,7 @@ function findAndReplaceTitle(title, remove, withheld) {
     console.log('results of looking for elements containing the exact text returned from the server:', results)
     if (!results.length) {
         let similarText = getFuzzyTextSimilarToHeading(title.text, true);
+
         if (similarText)
             results = getElementsContainingText(similarText);
     }
@@ -221,7 +222,6 @@ function findAndReplaceTitle(title, remove, withheld) {
                 */
                 if (title.Post.url != window.location.href.split('?')[0] && !customAttr) {
 
-                    console.log('headline clicked on')
                     clickTarget.addEventListener('click', function(ev) {
                         browser.runtime.sendMessage({
                             type: 'log_interaction',
