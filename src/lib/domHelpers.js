@@ -177,11 +177,25 @@ function findAndReplaceTitle(title, remove, withheld) {
     results = results.filter(el => !(['SCRIPT', 'TITLE'].includes(el.nodeName)));
 
     console.log('results of looking for elements containing the exact text returned from the server:', results)
+    /*
+    If exact text was not found, look for text that is *similar enough*
+    */
+
     if (!results.length) {
         let similarText = getFuzzyTextSimilarToHeading(title.text, true);
 
-        if (similarText)
-            results = getElementsContainingText(similarText);
+        if (similarText) {
+            let tmpResults = getElementsContainingText(similarText);
+            /*
+            Take the elements whose href attribute match the URL of the post that is returned
+            from the server
+            */
+            results = tmpResults.filter( el => 
+                (title.Post.url.split('//')[1] == window.location.href.split('//')[1].split('?')[0]) ||
+                el.closest(["a"]).getAttribute('href').split('//')[1].split('?')[0] == title.Post.url.split('//')[1]
+            )            
+        }
+           
     }
 
     let nonScriptResultsCount = 0;
@@ -220,7 +234,7 @@ function findAndReplaceTitle(title, remove, withheld) {
                 /*
                 if not on the actual article's page, e.g., on a homepage of a news website
                 */
-                if (title.Post.url != window.location.href.split('?')[0] && !customAttr) {
+                if (title.Post.url.split('//')[1] != window.location.href.split('//')[1].split('?')[0] && !customAttr) {
 
                     clickTarget.addEventListener('click', function(ev) {
                         browser.runtime.sendMessage({
