@@ -3,6 +3,7 @@ import insertedAppRouter from '@/router'
 import store from '@/store'
 import Fuse from 'fuse.js'
 import consts from '@/lib/constants'
+import utils from '@/services/utils'
 
 function getElementsContainingText(text) {
 
@@ -126,7 +127,7 @@ of a title tag in the document
 */
 function getFuzzyTextSimilarToHeading(targetTitleText, isSearchingForServerTitle, searchSnippet) {
 
-    console.log('inside fuzzy search', targetTitleText, searchSnippet)
+    console.log('inside fuzzy search', targetTitleText, searchSnippet ? searchSnippet.trim(): '')
 
     /*
     By default this function searches the whole content of the document. To not look for the text
@@ -142,16 +143,19 @@ function getFuzzyTextSimilarToHeading(targetTitleText, isSearchingForServerTitle
             el.toLowerCase());
     }
     else { //looking within the title of a tag to see if it is similar enough with 
-        textCorpus = [searchSnippet.toLowerCase()];
+        textCorpus = [searchSnippet.trim().toLowerCase()];
         scoreThreshold 
     }
 
-    scoreThreshold = isSearchingForServerTitle ? consts.FINDING_TITLES_FUZZY_SCORE_THRESHOLD :
-        consts.IDENTIFYING_TITLES_FUZZY_SCORE_THRESHOLD;
+    scoreThreshold = consts.INIDRECT_URL_DOMAINS.includes(utils.extractHostname(window.location.href)) ?
+        consts.STRICTER_FUZZY_SCORE_THRESHOLD :
+     (isSearchingForServerTitle ? consts.FINDING_TITLES_FUZZY_SCORE_THRESHOLD :
+        consts.IDENTIFYING_TITLES_FUZZY_SCORE_THRESHOLD);
 
     const options = {
         includeScore: true,
-        distance: 150
+        distance: 170,
+        scoreThreshold: scoreThreshold
     }
    
     const fuse = new Fuse(textCorpus, options)
@@ -184,16 +188,40 @@ function findAndReplaceTitle(title, remove, withheld) {
     if (!results.length) {
         let similarText = getFuzzyTextSimilarToHeading(title.text, true);
 
+        console.log('similar text found', similarText)
+
         if (similarText) {
             let tmpResults = getElementsContainingText(similarText);
+            console.log('elements containing found', tmpResults)
             /*
             Take the elements whose href attribute match the URL of the post that is returned
             from the server
-            */
-            results = tmpResults.filter( el => 
-                (title.Post.url.split('//')[1] == window.location.href.split('//')[1].split('?')[0]) ||
-                el.closest(["a"]).getAttribute('href').split('//')[1].split('?')[0] == title.Post.url.split('//')[1]
-            )            
+            */      
+            results = tmpResults.filter( el => {
+                /*
+                If the current page has the same URL as the associated post of the returned title, or if
+                the current page is among the special websits that have indirect URLs, then the result is accepted
+                */
+                if (title.Post.url.split('//')[1] == window.location.href.split('//')[1].split('?')[0] ||
+                    consts.INIDRECT_URL_DOMAINS.includes(utils.extractHostname(window.location.href)))
+                return true;
+
+                /*
+                Otherwise, check the href attribute of the closes ancestor of the element
+                */
+                let elementLink = el.closest(["a"]).getAttribute('href');
+                let sanitizedUrl;
+                if (elementLink.indexOf("//") > -1)
+                    sanitizedUrl = elementLink.split('//')[1].split('?')[0];
+                else
+                    sanitizedUrl = elementLink.split('?')[0];
+
+                console.log('sanitized', sanitizedUrl)
+                console.log(title.Post.url.split('//')[1], title.Post.url.split('//')[1].includes(sanitizedUrl))
+                
+                return (title.Post.url.split('//')[1].includes(sanitizedUrl));
+            })
+                        
         }
            
     }
@@ -242,10 +270,11 @@ function findAndReplaceTitle(title, remove, withheld) {
                             interaction: {
                                 type: 'visit_article', 
                                 data: { 
+                                    titleId: title.id,
                                     target: title.Post.url,
-                                    source: window.location.href
-                                },
-                                client: 'extension'
+                                    source: window.location.href,
+                                    titleWithheld: withheld ? 1 : 0
+                                }
                             }
                         })
                     })
@@ -318,6 +347,8 @@ function removeEventListenerFromTitle(headlineId) {
 }
 
 function identifyPotentialTitles() {
+
+    console.log('trying to identify titles')
     let elResults = [];
     try {
         let ogTitle = htmlDecode(document.querySelector('meta[property="og:title"]').getAttribute('content'));
@@ -375,6 +406,8 @@ function identifyPotentialTitles() {
         if (docTitle.length >= consts.MIN_TITLE_LENGTH) {
             let h1LevelHeadings = document.querySelectorAll('h1');
             let h2LevelHeadings = document.querySelectorAll('h2');
+
+            console.log('akharesh', h1LevelHeadings, h2LevelHeadings)
     
             elResults = [...h1LevelHeadings, ...h2LevelHeadings].filter(heading => {
                 let similarText = getFuzzyTextSimilarToHeading(docTitle, false, heading.textContent);

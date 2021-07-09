@@ -5,7 +5,8 @@ export default {
   state: {
     url: null,
     isWhiteListed: false, //globally
-    isBlacklisted: false//customized per user
+    isBlacklisted: false, //customized per user,
+    timeOpened: null
   },
   mutations: {
     set_url: (state, url) => {
@@ -16,6 +17,10 @@ export default {
     },
     set_black_list_status: (state, status) => {
       state.isBlacklisted = status;
+    },
+    set_time_opened: (state) => {
+      state.timeOpened = Date.now();
+      console.log('time opened', state.timeOpened)
     }
   },
   actions: {
@@ -71,11 +76,17 @@ export default {
 
     setBlackListStatus: function(context, payload) {
       return new Promise((resolve, reject) => {
-        // console.log('inja tu pageDetails*******', payload)
         context.commit('set_black_list_status', payload);
         resolve();
       })
-    }
+    },
+
+    setTimeOpened: (context) => {
+      return new Promise((resolve, reject) => {
+        context.commit('set_time_opened');
+        resolve();
+      })
+    },
 
   }
 }

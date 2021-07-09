@@ -240,7 +240,8 @@ export default {
             let titlesFoundOnPage = [];
             candidateTitles.forEach(candidateTitle => {
 
-                let withHeldVal = context.state.titlesStatuses[candidateTitle.id].isWithheld
+                let withHeldVal = context.state.titlesStatuses[candidateTitle.id].isWithheld;
+                console.log('withheldVal', withHeldVal)
                 
                 let replacementCount = domHelpers.findAndReplaceTitle(candidateTitle, false , withHeldVal);
                 if (replacementCount) {

@@ -1,4 +1,6 @@
 <template>
+  <v-container v-if="dialogVisible" fluid class="pa-0 sth" >
+
 <v-dialog v-model="dialogVisible" max-width="530px">
      <!-- <v-slide-x-reverse-transition> -->
     <v-snackbar v-model="alert" top>
@@ -170,6 +172,7 @@
     </v-row>
 
     </v-dialog>
+    </v-container>
 </template>
 
 <script>
@@ -227,10 +230,6 @@ export default {
             
         }
     },
-    // beforeRouteLeave (to, from, next) {
-    //     this.hideContainer();
-    //     next();
-    // },
     computed: {
 
         dialogVisible: {
@@ -243,8 +242,8 @@ export default {
         },
         associatedStandaloneTitle: function() {
 
-            if (this.displayedTitle.titleId ){
-                console.log('standalone title is ', this.titles.find(title => title.id == this.displayedTitle.titleId))
+            if (this.displayedTitle.titleId ) {
+                // console.log('standalone title is ', this.titles.find(title => title.id == this.displayedTitle.titleId))
                 return this.titles.find(title => title.id == this.displayedTitle.titleId);
             }
             else
@@ -267,7 +266,8 @@ export default {
             'displayedTitle'
         ]),
         ...mapState('pageDetails', [
-            'url'
+            'url',
+            'timeOpened'
         ])
     },
     methods: {
@@ -302,6 +302,7 @@ export default {
                     }
                 })
                 .then(res => {
+
                     console.log('got post new title response back:', res);
                     thisRef.newTitle = '';
                     thisRef.$refs.newTitleForm.resetValidation();
@@ -313,6 +314,18 @@ export default {
                         thisRef.setDisplayedTitle({ 
                             titleId: res.data.data.id,
                             titleText: res.data.data.text
+                        });
+
+                        browser.runtime.sendMessage({
+                            type: 'log_interaction',
+                            interaction: {
+                                    type: 'post_headline', 
+                                    data: { 
+                                        url: window.location.href,
+                                        titleId: res.data.data.id,
+                                        timeSpentOnPage: Date.now() - this.timeOpened
+                                    }
+                            }
                         })
                     })
                 })
@@ -501,14 +514,18 @@ export default {
 }
 </script>
 <style>
-html {
-    /* width: 100vw;
-    height: 100vh; */
-    /* top: 0px;  */
-}
+/* html {
+    width: 100vw;
+    height: 100vh;
+    top: 0px; 
+} */
 
 .custom-titles-container-card {
     overflow: auto;
     /* max-height: min(100%, 50vh); */
+}
+
+.sth {
+    /* height: 1200px; */
 }
 </style>

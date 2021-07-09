@@ -29,12 +29,18 @@ export default {
         this.fetchTitlesAndRelationships();
         this.$router.push({ name: 'Home' });
       }
+
+      this.setTimeOpened();
+
     });
   },
   methods: {
     ...mapActions('auth', [
       'getUser',
       'logout'
+    ]),
+    ...mapActions('pageDetails', [
+      'setTimeOpened'
     ])
   },
   mixins: [setupHelpers]
