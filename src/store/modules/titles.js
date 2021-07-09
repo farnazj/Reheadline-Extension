@@ -15,7 +15,8 @@ export default {
       displayedTitle: {
         titleId: null,
         titleText: '',
-        titleElementId: null
+        titleElementId: null,
+        height: null
       },
       titleEndorsersState: {
         endorsersVisibility: false,

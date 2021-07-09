@@ -55,8 +55,10 @@ function addAltTitleNodeToHeadline(altTitle) {
 
         store.dispatch('titles/setDisplayedTitle', { 
             titleId: altTitle.id,
-            titleText: altTitle.text
+            titleText: altTitle.text,
+            offset: window.pageYOffset
         });
+
         store.dispatch('titles/setTitlesDialogVisibility', true);
     
         insertedAppRouter.push({
@@ -332,7 +334,8 @@ function openCustomTitlesDialog(ev) {
     store.dispatch('titles/setTitlesDialogVisibility', true);
     store.dispatch('titles/setDisplayedTitle', { 
         titleText: titleEl.textContent.trim(),
-        titleElementId: titleEl.getAttribute('data-headline-id') 
+        titleElementId: titleEl.getAttribute('data-headline-id'),
+        offset: window.pageYOffset
     });
 
     insertedAppRouter.push({

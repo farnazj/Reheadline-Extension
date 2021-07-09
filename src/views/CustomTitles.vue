@@ -1,5 +1,5 @@
 <template>
-  <v-container v-if="dialogVisible" fluid class="pa-0 sth" >
+  <v-container v-if="dialogVisible" fluid class="pa-0" >
 
 <v-dialog v-model="dialogVisible" max-width="530px">
      <!-- <v-slide-x-reverse-transition> -->
@@ -234,6 +234,10 @@ export default {
 
         dialogVisible: {
             get: function() {
+                if (this.titlesDialogVisible) {
+                    let func = this.keepInPlace;
+                    window.setTimeout(func, 15)
+                }
                 return this.titlesDialogVisible;
             },
             set: function(newValue) {
@@ -271,6 +275,10 @@ export default {
         ])
     },
     methods: {
+        keepInPlace: function() {
+            let dialog = document.querySelector('.v-dialog__content');
+            window.scroll(0, this.displayedTitle.offset);
+        },
         isFollowed: function(source) {
             return utils.isFollowed(source);
         },
@@ -507,7 +515,8 @@ export default {
 
     },
     watch: {
-        titles: function(newVal) {
+        titlesDialogVisible: function(newVal) {
+            console.log('chi shod pa',  newVal)
         }
     },
     mixins: [timeHelpers]
@@ -523,9 +532,5 @@ export default {
 .custom-titles-container-card {
     overflow: auto;
     /* max-height: min(100%, 50vh); */
-}
-
-.sth {
-    /* height: 1200px; */
 }
 </style>
