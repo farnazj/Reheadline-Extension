@@ -1,10 +1,14 @@
 <template>
   <v-row no-gutters class="identify-headlines-button-row" v-if="!isWhiteListed && !isBlacklisted && !buttonHidden">
 
-    <v-btn @click="whiteListPage" max-width="230px"
+    <!-- <v-btn @click="whiteListPage" max-width="230px"
     color="blue-grey lighten-3" raised >
       <v-img :src="logoUrl" class="logo-img mr-1" contain></v-img>
       Identify Headlines
+    </v-btn> -->
+
+    <v-btn @click="whiteListPage" raised color="blue-grey lighten-3">
+      <v-icon small>{{icons.edit}}</v-icon>
     </v-btn>
 
     <v-btn class="px-1" max-width="30px" min-width="initial" @click="hideButton">
@@ -18,7 +22,7 @@
 // @ is an alias to /src
 import domHelpers from '@/lib/domHelpers'
 import { mapState, mapActions } from 'vuex'
-import { mdiChevronLeft } from '@mdi/js';
+import { mdiChevronLeft, mdiPencil } from '@mdi/js';
 
 export default {
   name: 'Home',
@@ -29,7 +33,8 @@ export default {
     return {
       buttonHidden: false,
       icons: {
-        left: mdiChevronLeft
+        left: mdiChevronLeft,
+        edit: mdiPencil
       }
     }
   },
