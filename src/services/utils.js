@@ -141,6 +141,12 @@ function compareTitles(a, b) {
   if (compareVal != 0)
     return compareVal;
   else {
+
+    if (a.lastVersion.Endorsers.length > b.lastVersion.Endorsers.length)
+      return -1;
+    else if (a.lastVersion.Endorsers.length < b.lastVersion.Endorsers.length)
+      return 1;
+
     let aDate = new Date(a.lastVersion.updatedAt);
     let bDate = new Date(b.lastVersion.updatedAt);
     if (aDate < bDate)

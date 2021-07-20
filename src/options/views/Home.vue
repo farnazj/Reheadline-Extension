@@ -16,7 +16,7 @@
         </v-radio-group> -->
 
         <v-row class="mt-1" no-gutters>
-            <p class="body-2">To change the sources you follow you can visit the Sources page on
+            <p class="body-2">To change the sources you follow you can visit the Users page on
                 <a :href="sourcesLink" class="ml-1 custom-link" target="_blank">{{siteName}}
                 </a>.
             </p>
@@ -98,7 +98,7 @@ export default {
         return consts.SITE_NAME;
     },
     sourcesLink: function() {
-        return `${consts.CLIENT_URL}/sources`;
+        return `${consts.CLIENT_URL}/users`;
     },
     ...mapState('preferences', [
       'userPreferences'
