@@ -10,7 +10,7 @@
 
         <v-form>
           <v-card>
-            <v-container fluid>
+            <v-container fluid class="side-container">
               <v-row justify="center" no-gutters>
                 <v-card-title primary-title >
                   <h3 class="headline">Log into your account</h3>
@@ -121,4 +121,10 @@ export default {
     right: 0px;
     z-index: 99999;
 }
+
+.side-container {
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
 </style>

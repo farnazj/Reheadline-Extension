@@ -24,6 +24,7 @@ browser.runtime.sendMessage({
 
     const container = document.createElement('div');
     container.setAttribute('data-vuetify', '')
+    container.style.all = 'revert';
     const app = document.createElement('div');
     app.setAttribute('id', 'vueApp');
     container.appendChild(app);

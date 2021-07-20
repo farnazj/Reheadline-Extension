@@ -1,7 +1,7 @@
 <template>
-  <v-container>
+  <v-container fluid class="pa-0">
     <v-row no-gutters justify="center" class="pt-5">
-        <v-col cols="10" sm="6" md="4" lg="3">
+        <v-col cols="11" sm="6" md="4" lg="3">
 
         <!-- <v-radio-group v-model="selectedHeadlineSource">
             <template v-slot:label>

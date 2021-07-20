@@ -7,11 +7,11 @@
       Identify Headlines
     </v-btn> -->
 
-    <v-btn @click="whiteListPage" raised color="blue-grey lighten-3">
+    <v-btn @click="whiteListPage" raised color="blue-grey lighten-3" small>
       <v-icon small>{{icons.edit}}</v-icon>
     </v-btn>
 
-    <v-btn class="px-1" max-width="30px" min-width="initial" @click="hideButton">
+    <v-btn class="px-1" max-width="30px" min-width="initial" @click="hideButton" small>
       <v-icon>{{icons.left}}</v-icon>
     </v-btn>
 
@@ -72,7 +72,8 @@ export default {
   position: fixed;
   top: 0px;
   left: 0px;
-  width: 280px;
+  /* width: 280px; */
+  width: 200px;
   z-index: 99999;
 }
 
