@@ -244,9 +244,8 @@ export default {
         dialogVisible: {
             get: function() {
                 if (this.titlesDialogVisible) {
-                    this.keepInPlace();  
+                    this.keepInPlace();
                 }
-
                 return this.titlesDialogVisible;
             },
             set: function(newValue) {
@@ -285,10 +284,10 @@ export default {
     },
     methods: {
         keepInPlace: function() {
-             window.setTimeout(() => {
+            window.setTimeout(() => {
                 let dialog = document.querySelector('.v-dialog__content');
                 window.scroll(0, this.displayedTitle.offset);
-             }, 10);
+            }, 10);
             
         },
         isFollowed: function(source) {

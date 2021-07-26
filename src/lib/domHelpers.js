@@ -61,6 +61,20 @@ function addAltTitleNodeToHeadline(altTitle) {
 
         store.dispatch('titles/setTitlesDialogVisibility', true);
     
+        browser.runtime.sendMessage({
+            type: 'log_interaction',
+            interaction: {
+                type: 'show_titles_for_post', 
+                data: { 
+                    url: window.location.href,
+                    standaloneTitleId: altTitle.id,
+                    standaloneTitleText: altTitle.text,
+                    postId: altTitle.PostId,
+                    displayedCustomTitle: altTitle.sortedCustomTitles[0]['lastVersion'].text
+                }
+            }
+        })
+
         insertedAppRouter.push({
             name: 'customTitles'
         });
@@ -93,7 +107,6 @@ function acceptInputOnHeadline (headlineTag) {
         headlineTag.setAttribute('data-headline-id', Math.random().toString(36).substring(2, 15));
 
         let color = window.getComputedStyle(headlineTag).color;
-
         let editButton = createEditButton();
 
         if (generalUtils.isTextLight(color)) {
@@ -155,6 +168,7 @@ function getFuzzyTextSimilarToHeading(targetTitleText, isSearchingForServerTitle
         consts.IDENTIFYING_TITLES_FUZZY_SCORE_THRESHOLD);
 
     const options = {
+        isCaseSensitive: false,
         includeScore: true,
         distance: 170,
         scoreThreshold: scoreThreshold
@@ -354,21 +368,31 @@ function identifyPotentialTitles() {
     console.log('trying to identify titles')
     let elResults = [];
     try {
-        let ogTitle = htmlDecode(document.querySelector('meta[property="og:title"]').getAttribute('content'));
-        console.log('og title is:', ogTitle)
+        let origOgTitle = htmlDecode(document.querySelector('meta[property="og:title"]').getAttribute('content'));
+        console.log('og title is:', origOgTitle)
 
-        if (ogTitle.length >= consts.MIN_TITLE_LENGTH) {
-            elResults = getElementsContainingText(ogTitle).filter(el => !(['SCRIPT', 'TITLE'].includes(el.nodeName)));
+        let manipulatedOgTitles = [origOgTitle]
+        consts.THROWAWAY_TERMS.forEach((term) => {
+            let throwawayIndex = origOgTitle.indexOf(term)
+            if (throwawayIndex != -1)
+                manipulatedOgTitles.push(origOgTitle.substring(throwawayIndex + term.length));
+        })
         
-            //if the exact ogTitle text was not found, look for text that is similar enough
-            if (!elResults.length) {
-                let similarText = getFuzzyTextSimilarToHeading(ogTitle, false);
-                if (similarText.length >= consts.MIN_TITLE_LENGTH)
-                    elResults = getElementsContainingText(similarText).filter(el => !(['SCRIPT', 'TITLE'].includes(el.nodeName)));
+        manipulatedOgTitles.forEach((ogTitle) => {
+            if (ogTitle.length >= consts.MIN_TITLE_LENGTH) {
+                elResults = getElementsContainingText(ogTitle).filter(el => !(['SCRIPT', 'TITLE'].includes(el.nodeName)));
+            
+                //if the exact ogTitle text was not found, look for text that is similar enough
+                if (!elResults.length) {
+                    let similarText = getFuzzyTextSimilarToHeading(ogTitle, false);
+                    if (similarText && similarText.length >= consts.MIN_TITLE_LENGTH)
+                        elResults = getElementsContainingText(similarText).filter(el => !(['SCRIPT', 'TITLE'].includes(el.nodeName)));
+                }
+        
+                console.log(`results of looking for og title ${ogTitle} is` , elResults);
             }
-    
-            console.log('results of looking for og titles:', elResults);
-        }
+        })
+  
        
     }
     catch(err) {
@@ -385,7 +409,7 @@ function identifyPotentialTitles() {
                 //if the exact twitter title text was not found, look for text that is similar enough
                 if (!elResults.length) {
                     let similarText = getFuzzyTextSimilarToHeading(twitterTitle, false);
-                    if (similarText.length >= consts.MIN_TITLE_LENGTH)
+                    if (similarText && similarText.length >= consts.MIN_TITLE_LENGTH)
                         elResults = getElementsContainingText(similarText).filter(el => !(['SCRIPT', 'TITLE'].includes(el.nodeName)));
                 }
     
