@@ -296,6 +296,7 @@ export default {
                 .then(candidateTitles => {
                     context.dispatch('sortCustomTitles', candidateTitles)
                     .then(standaloneTitlesArr => {
+                        // console.log('candidate titles are ', standaloneTitlesArr)
                         context.dispatch('findTitlesOnPage', { candidateTitlesWSortedCustomTitles: standaloneTitlesArr })
                         .then(res => {
                             context.dispatch('pageObserver/reconnectObserver', {}, {root: true});

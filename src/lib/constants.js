@@ -6,7 +6,7 @@ const CLIENT_URL = `https://reheadline.csail.mit.edu`;
 const SITE_NAME = 'Reheadline';
 const LENGTH_TO_HASH = 25;
 const MAX_TITLE_LENGTH = 200;
-const MIN_TITLE_LENGTH = 18;
+const MIN_TITLE_LENGTH = 17;
 const FINDING_TITLES_FUZZY_SCORE_THRESHOLD=0.54;
 const IDENTIFYING_TITLES_FUZZY_SCORE_THRESHOLD=0.54;
 
@@ -16,8 +16,15 @@ const INIDRECT_URL_DOMAINS = [
   'www.reddit.com'
 ]
 
-const THROWAWAY_TERMS = [
-  'Analysis:'
+const THROWAWAY_BEG_TERMS = [
+  'Analysis:',
+  'Opinion |'
+]
+const THROWAWAY_END_TERMS = [
+  ' - The New York Times',
+  '| Vanity Fair Read More',
+  '- AMAC',
+  '- The Boston Globe'
 ]
 
 export default {
@@ -31,5 +38,6 @@ export default {
   IDENTIFYING_TITLES_FUZZY_SCORE_THRESHOLD,
   STRICTER_FUZZY_SCORE_THRESHOLD,
   INIDRECT_URL_DOMAINS,
-  THROWAWAY_TERMS
+  THROWAWAY_BEG_TERMS,
+  THROWAWAY_END_TERMS
 }

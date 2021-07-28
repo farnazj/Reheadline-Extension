@@ -23,9 +23,11 @@ const routes = [
     component: Login
   },
   {
-    path: '/custom-titles/:titleId',
+    // path: '/custom-titles/:titleId',
+    // name: 'customTitles',
+    // props: true,
+    path: '/custom-titles',
     name: 'customTitles',
-    props: true,
     component: CustomTitles,
     meta: {
       requiresAuth: true

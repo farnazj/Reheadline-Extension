@@ -14,30 +14,34 @@ function getElementsContainingText(text) {
 
     let results = [];
 
+    let xpathExtension = utils.extractHostname(window.location.href) == "www.nationalgeographic.com" ? 'or ancestor-or-self::div' : ''; //in National Geographic the links are in fact divs
+
     try {
         xpath = `//*[(ancestor-or-self::h1 or ancestor-or-self::h2 or ancestor-or-self::h3 or 
-        ancestor-or-self::h4 or ancestor-or-self::h5 or ancestor-or-self::h6 or ancestor-or-self::a)
+        ancestor-or-self::h4 or ancestor-or-self::h5 or ancestor-or-self::h6 or ancestor-or-self::a ${xpathExtension})
          and ( contains(translate(text(),"ABCDEFGHIJKLMNOPQRSTUVWXYZ",
          "abcdefghijklmnopqrstuvwxyz"), 
          "${text}") or contains(translate(text(),"ABCDEFGHIJKLMNOPQRSTUVWXYZ",
          "abcdefghijklmnopqrstuvwxyz"), 
          "${uncurlifiedText}")
          )]`;
+
         query = document.evaluate(xpath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);    
     }
     catch (error) {
         console.log('error in xpath because the matching text has double quotes in it', error)
-        if (error.name == 'DOMException') {
+        // if (error.name == 'DOMException') {
             xpath = `//*[(ancestor-or-self::h1 or ancestor-or-self::h2 or ancestor-or-self::h3 or 
-            ancestor-or-self::h4 or ancestor-or-self::h5 or ancestor-or-self::h6 or ancestor-or-self::a)
+            ancestor-or-self::h4 or ancestor-or-self::h5 or ancestor-or-self::h6 or ancestor-or-self::a ${xpathExtension})
             and ( contains(translate(text(),"ABCDEFGHIJKLMNOPQRSTUVWXYZ",
             "abcdefghijklmnopqrstuvwxyz"), 
             '${text}') or contains(translate(text(),"ABCDEFGHIJKLMNOPQRSTUVWXYZ",
             "abcdefghijklmnopqrstuvwxyz"), 
             '${uncurlifiedText}')
             )]`;
+
             query = document.evaluate(xpath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);  
-        }
+        // }
     }
         
     for (let i = 0, length = query.snapshotLength; i < length; ++i) {
@@ -170,7 +174,7 @@ function getFuzzyTextSimilarToHeading(targetTitleText, isSearchingForServerTitle
     const options = {
         isCaseSensitive: false,
         includeScore: true,
-        distance: 170,
+        distance: 200,
         scoreThreshold: scoreThreshold
     }
    
@@ -293,7 +297,7 @@ function findAndReplaceTitle(title, remove, withheld) {
                                 }
                             }
                         })
-                    })
+                    }, true) //the event should run on the capture phase to make sure this is executed before the click handler on the element itself which redirects to another page
                 }
                 
                 if (!withheld) {
@@ -343,8 +347,12 @@ function htmlDecode(input) {
 
 function openCustomTitlesDialog(ev) {
     ev.preventDefault();
-    let titleEl =  ev.target.closest('h1');
+    let titleEl = ["www.dailymail.co.uk", "www.politico.com"].includes(utils.extractHostname(window.location.href))  ? ev.target.closest('h2') : ev.target.closest('h1');
 
+    //The economist h1's have a subtitle as well as a title node inside them (separated by a br node)
+    if (utils.extractHostname(window.location.href) == "www.economist.com" && titleEl.children.length == 3 )
+        titleEl = document.querySelector('[data-test-id="Article Headline"]');
+    
     store.dispatch('titles/setTitlesDialogVisibility', true);
     store.dispatch('titles/setDisplayedTitle', { 
         titleText: titleEl.textContent.trim(),
@@ -369,18 +377,38 @@ function identifyPotentialTitles() {
     let elResults = [];
     try {
         let origOgTitle = htmlDecode(document.querySelector('meta[property="og:title"]').getAttribute('content'));
-        console.log('og title is:', origOgTitle)
 
-        let manipulatedOgTitles = [origOgTitle]
-        consts.THROWAWAY_TERMS.forEach((term) => {
-            let throwawayIndex = origOgTitle.indexOf(term)
-            if (throwawayIndex != -1)
-                manipulatedOgTitles.push(origOgTitle.substring(throwawayIndex + term.length));
+        let manipulatedOgTitles = [origOgTitle];
+
+        consts.THROWAWAY_BEG_TERMS.forEach((begTerm) => {
+            let throwawayBegIndex = origOgTitle.indexOf(begTerm);
+            let truncatedText = origOgTitle;
+            
+            if (throwawayBegIndex != -1) {
+                truncatedText = origOgTitle.substring(throwawayBegIndex + begTerm.length + 1);
+                manipulatedOgTitles.push(truncatedText);
+            }
+
+            consts.THROWAWAY_END_TERMS.forEach((endTerm) => {
+                let throwawayEndIndex = origOgTitle.indexOf(endTerm);
+                if (throwawayEndIndex != -1) {
+                    truncatedText = truncatedText.substring(0, throwawayEndIndex);
+                    manipulatedOgTitles.push(truncatedText);
+                }
+                
+                manipulatedOgTitles.push(truncatedText);
+            })
+
+            
         })
+
+        console.log('here are manipulated og titles', manipulatedOgTitles)
         
         manipulatedOgTitles.forEach((ogTitle) => {
             if (ogTitle.length >= consts.MIN_TITLE_LENGTH) {
                 elResults = getElementsContainingText(ogTitle).filter(el => !(['SCRIPT', 'TITLE'].includes(el.nodeName)));
+
+                console.log('was exact title found', elResults)
             
                 //if the exact ogTitle text was not found, look for text that is similar enough
                 if (!elResults.length) {
@@ -424,10 +452,10 @@ function identifyPotentialTitles() {
     }
 
     /*
-    if og and twitter titles were not found on the page, look for h headings that have texts 
-    similar to the document's title
+    if og and twitter titles were not found on the page, look for h headings that have texts similar to the document's title +
+    if on ESPN and the only found title is inside an <a> tag (which is on the feed)
     */
-    if (!elResults.length) {
+    if (!elResults.length || (utils.extractHostname(window.location.href) == 'www.espn.com' && elResults.every((el => el.nodeName == 'A'))) ) {
 
         let docTitle = document.querySelector('title').textContent;
         if (docTitle.length >= consts.MIN_TITLE_LENGTH) {

@@ -296,7 +296,7 @@ export default {
         returnToHome: function() {
    
             this.setTitlesDialogVisibility(false);
-            this.$router.push({ name: 'home' });
+            this.$router.push({ name: 'Home' });
         },
         postNewTitle: function() {
             if (this.$refs.newTitleForm.validate()) {

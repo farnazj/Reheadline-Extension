@@ -73,8 +73,9 @@ export default {
   top: 0px;
   left: 0px;
   /* width: 280px; */
+  height: 100px;
   width: 200px;
-  z-index: 99999;
+  z-index: 999999;
 }
 
 .logo-img {
