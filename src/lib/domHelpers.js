@@ -64,7 +64,7 @@ function addAltTitleNodeToHeadline(altTitle) {
         });
 
         store.dispatch('titles/setTitlesDialogVisibility', true);
-    
+
         browser.runtime.sendMessage({
             type: 'log_interaction',
             interaction: {
@@ -85,7 +85,8 @@ function addAltTitleNodeToHeadline(altTitle) {
         
     })
 
-    newEl.appendChild(document.createTextNode(altTitle.sortedCustomTitles[0]['lastVersion'].text + ' '));
+    if (altTitle.sortedCustomTitles.length)
+        newEl.appendChild(document.createTextNode(altTitle.sortedCustomTitles[0]['lastVersion'].text + ' '));
     return newEl;
 }
 
@@ -347,7 +348,14 @@ function htmlDecode(input) {
 
 function openCustomTitlesDialog(ev) {
     ev.preventDefault();
-    let titleEl = ["www.dailymail.co.uk", "www.politico.com"].includes(utils.extractHostname(window.location.href))  ? ev.target.closest('h2') : ev.target.closest('h1');
+
+    let titleEl;
+    let domainName = utils.extractHostname(window.location.href);
+
+    if (["www.dailymail.co.uk", "www.politico.com", "www.theweek.com"].some((domain) => domain.includes(domainName)))
+        titleEl = ev.target.closest('h2');
+    else
+        titleEl = ev.target.closest('h1');
 
     //The economist h1's have a subtitle as well as a title node inside them (separated by a br node)
     if (utils.extractHostname(window.location.href) == "www.economist.com" && titleEl.children.length == 3 )
@@ -470,6 +478,11 @@ function identifyPotentialTitles() {
             }).filter(x => x.textContent.length >= consts.MIN_TITLE_LENGTH);
     
             console.log('heading tags with similar text to document title', elResults);
+        }
+
+        if (!elResults.length) {
+            if (utils.extractHostname(window.location.href) == 'www.deseret.com')
+                elResults = document.querySelectorAll('.c-page-title');
         }
       
     }

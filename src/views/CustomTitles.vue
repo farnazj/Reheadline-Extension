@@ -322,6 +322,22 @@ export default {
                 })
                 .then(res => {
 
+                    if (utils.extractHostname(window.location.href) == 'www.deseret.com' ) {
+                        let homepageTitle = document.querySelector('title').textContent;
+                        console.log('tu deseret', homepageTitle)
+                        browser.runtime.sendMessage({
+                            type: 'post_new_title',
+                            data: {
+                                reqBody: {
+                                    postId: this.associatedStandaloneTitle ? this.associatedStandaloneTitle.PostId : null,
+                                    postUrl: this.url,
+                                    customTitleText: this.newTitle,
+                                    pageIndentifiedTitle: homepageTitle
+                                }
+                            }
+                        })
+                    }
+
                     console.log('got post new title response back:', res);
                     thisRef.newTitle = '';
                     thisRef.$refs.newTitleForm.resetValidation();
