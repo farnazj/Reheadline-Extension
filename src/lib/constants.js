@@ -18,13 +18,15 @@ const INIDRECT_URL_DOMAINS = [
 
 const THROWAWAY_BEG_TERMS = [
   'Analysis:',
-  'Opinion |'
+  'Opinion |',
+  'Perspective |' //for washington post,
 ]
 const THROWAWAY_END_TERMS = [
   ' - The New York Times',
   '| Vanity Fair Read More',
   '- AMAC',
-  '- The Boston Globe'
+  '- The Boston Globe',
+  '| The Guardian'
 ]
 
 export default {

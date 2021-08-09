@@ -23,6 +23,7 @@
 import domHelpers from '@/lib/domHelpers'
 import { mapState, mapActions } from 'vuex'
 import { mdiChevronLeft, mdiPencil } from '@mdi/js';
+import setupHelpers from '@/mixins/setupHelpers'
 
 export default {
   name: 'Home',
@@ -39,6 +40,7 @@ export default {
     }
   },
   created() {
+    // this.setupURLWatch();
   },
   computed: {
     logoUrl: function() {
@@ -63,7 +65,8 @@ export default {
     ...mapActions('pageDetails', [
       'addUrlToWhiteLists'
     ])
-  }
+  },
+  mixins: [setupHelpers]
 }
 </script>
 

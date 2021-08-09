@@ -123,7 +123,7 @@ function acceptInputOnHeadline (headlineTag) {
             editButton.classList.add('title-background-light');
         }
 
-        headlineTag.appendChild(editButton)
+        headlineTag.appendChild(editButton);
     }
 }
 

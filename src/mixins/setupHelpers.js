@@ -7,9 +7,10 @@ export default {
     }
   },
   methods: {
+
     fetchTitlesAndRelationships() {
 
-      this.setUpPageUrl()
+      Promise.all([this.setUpPageUrl(), this.setUpURLObserver()])
       .then(() => {
         this.IsGloballyWhiteListed();
       });
@@ -65,7 +66,8 @@ export default {
     ...mapActions('pageDetails', [
       'setUpPageUrl',
       'IsGloballyWhiteListed',
-      'setBlackListStatus'
+      'setBlackListStatus',
+      'setUpURLObserver'
     ]),
     ...mapActions('pageObserver', [
         'setUpObserver'

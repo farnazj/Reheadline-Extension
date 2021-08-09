@@ -8,6 +8,11 @@ export default {
     isBlacklisted: false, //customized per user,
     timeOpened: null
   },
+  getters: {
+    // pageURL: (state) => {
+    //   return state.url;
+    // },
+  },
   mutations: {
     set_url: (state, url) => {
       state.url = url;
@@ -24,7 +29,24 @@ export default {
     }
   },
   actions: {
+
+    setUpURLObserver: function(context) {
+      let lastUrl = window.location.href; 
+      new MutationObserver(() => {
+        const url = window.location.href;
+        if (url !== lastUrl) {
+          lastUrl = url;
+          onUrlChange();
+        }
+      }).observe(document, {subtree: true, childList: true});
+      
+      function onUrlChange() {
+        context.dispatch('setUpPageUrl');
+      }
+    },
+
     setUpPageUrl: function(context) {
+
       return new Promise((resolve, reject) => {
           context.commit('set_url', window.location.href);
           resolve();

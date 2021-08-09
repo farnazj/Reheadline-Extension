@@ -39,4 +39,3 @@ browser.runtime.sendMessage({
         render: h => h(insertedApp),
     });
 })
-
