@@ -26,7 +26,8 @@ const THROWAWAY_END_TERMS = [
   '| Vanity Fair Read More',
   '- AMAC',
   '- The Boston Globe',
-  '| The Guardian'
+  '| The Guardian',
+  '- Slashdot'
 ]
 
 export default {

@@ -352,14 +352,19 @@ function openCustomTitlesDialog(ev) {
     let titleEl;
     let domainName = utils.extractHostname(window.location.href);
 
-    if (["www.dailymail.co.uk", "www.politico.com", "www.theweek.com"].some((domain) => domain.includes(domainName)))
+    if (["www.dailymail.co.uk", "www.politico.com", "www.theweek.com"].some((domain) =>
+     domain.includes(domainName)))
         titleEl = ev.target.closest('h2');
+    else if ("news.slashdot.org" == domainName)
+        titleEl = Array.prototype.slice.call(ev.target.closest('h2').children).filter((el) => el.classList.contains('story-title'))[0].children[0];
     else
         titleEl = ev.target.closest('h1');
 
     //The economist h1's have a subtitle as well as a title node inside them (separated by a br node)
     if (utils.extractHostname(window.location.href) == "www.economist.com" && titleEl.children.length == 3 )
         titleEl = document.querySelector('[data-test-id="Article Headline"]');
+
+    console.log('chi shodeee', titleEl.textContent.trim())
     
     store.dispatch('titles/setTitlesDialogVisibility', true);
     store.dispatch('titles/setDisplayedTitle', { 
@@ -394,17 +399,22 @@ function identifyPotentialTitles() {
             
             if (throwawayBegIndex != -1) {
                 truncatedText = origOgTitle.substring(throwawayBegIndex + begTerm.length + 1);
-                manipulatedOgTitles.push(truncatedText);
+
+                if (!manipulatedOgTitles.includes(truncatedText))
+                    manipulatedOgTitles.push(truncatedText);
             }
 
             consts.THROWAWAY_END_TERMS.forEach((endTerm) => {
                 let throwawayEndIndex = origOgTitle.indexOf(endTerm);
                 if (throwawayEndIndex != -1) {
                     truncatedText = truncatedText.substring(0, throwawayEndIndex);
-                    manipulatedOgTitles.push(truncatedText);
+
+                    if (!manipulatedOgTitles.includes(truncatedText))
+                        manipulatedOgTitles.push(truncatedText);
                 }
                 
-                manipulatedOgTitles.push(truncatedText);
+                if (!manipulatedOgTitles.includes(truncatedText))
+                    manipulatedOgTitles.push(truncatedText);
             })
 
             
