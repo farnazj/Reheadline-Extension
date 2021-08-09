@@ -325,7 +325,7 @@ export default {
                 context.dispatch('sortCustomTitles', [candidateTitle])
                 .then(standaloneTitlesArr => {
 
-                    if (standaloneTitlesArr.length) {
+                    if (standaloneTitlesArr.length && standaloneTitlesArr[0].sortedCustomTitles.length) {
                         context.dispatch('findTitlesOnPage', { 
                             candidateTitlesWSortedCustomTitles: standaloneTitlesArr
                         })

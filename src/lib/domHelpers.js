@@ -85,8 +85,8 @@ function addAltTitleNodeToHeadline(altTitle) {
         
     })
 
-    if (altTitle.sortedCustomTitles.length)
-        newEl.appendChild(document.createTextNode(altTitle.sortedCustomTitles[0]['lastVersion'].text + ' '));
+    newEl.appendChild(document.createTextNode(altTitle.sortedCustomTitles[0]['lastVersion'].text + ' '));
+
     return newEl;
 }
 
