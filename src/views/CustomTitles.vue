@@ -1,7 +1,7 @@
 <template>
   <v-container v-if="dialogVisible" fluid class="pa-0" >
 
-<v-dialog v-model="dialogVisible" max-width="530px">
+<v-dialog v-model="dialogVisible" max-width="530px" >
      <!-- <v-slide-x-reverse-transition> -->
     <v-snackbar v-model="alert" top>
         {{ alertMessage }}
@@ -555,4 +555,6 @@ export default {
     overflow: auto;
     /* max-height: min(100%, 50vh); */
 }
+
+
 </style>

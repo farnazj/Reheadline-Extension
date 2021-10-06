@@ -352,11 +352,13 @@ function openCustomTitlesDialog(ev) {
     let titleEl;
     let domainName = utils.extractHostname(window.location.href);
 
-    if (["www.dailymail.co.uk", "www.politico.com", "www.theweek.com"].some((domain) =>
-     domain.includes(domainName)))
+    if (["dailymail.co.uk", "politico.com", "theweek.com"].some((domain) =>
+     domainName.includes(domain)))
         titleEl = ev.target.closest('h2');
-    else if ("news.slashdot.org" == domainName)
+    else if (domainName.includes("news.slashdot.org"))
         titleEl = Array.prototype.slice.call(ev.target.closest('h2').children).filter((el) => el.classList.contains('story-title'))[0].children[0];
+    else if (domainName.includes("feedly.com"))
+        titleEl = ev.target.closest('a');
     else
         titleEl = ev.target.closest('h1');
 
@@ -388,113 +390,121 @@ function identifyPotentialTitles() {
 
     console.log('trying to identify titles')
     let elResults = [];
-    try {
-        let origOgTitle = htmlDecode(document.querySelector('meta[property="og:title"]').getAttribute('content'));
 
-        let manipulatedOgTitles = [origOgTitle];
+    if (utils.extractHostname(window.location.href).includes('feedly.com')) {
 
-        consts.THROWAWAY_BEG_TERMS.forEach((begTerm) => {
-            let throwawayBegIndex = origOgTitle.indexOf(begTerm);
-            let truncatedText = origOgTitle;
-            
-            if (throwawayBegIndex != -1) {
-                truncatedText = origOgTitle.substring(throwawayBegIndex + begTerm.length + 1);
+        elResults = [document.querySelector('.entryTitle')].filter(el => el != null);
+        console.log('feedly results', elResults)
+    }
+    else {
+        try {
+            let origOgTitle = htmlDecode(document.querySelector('meta[property="og:title"]').getAttribute('content'));
 
-                if (!manipulatedOgTitles.includes(truncatedText))
-                    manipulatedOgTitles.push(truncatedText);
-            }
+            let manipulatedOgTitles = [origOgTitle];
 
-            consts.THROWAWAY_END_TERMS.forEach((endTerm) => {
-                let throwawayEndIndex = origOgTitle.indexOf(endTerm);
-                if (throwawayEndIndex != -1) {
-                    truncatedText = truncatedText.substring(0, throwawayEndIndex);
+            consts.THROWAWAY_BEG_TERMS.forEach((begTerm) => {
+                let throwawayBegIndex = origOgTitle.indexOf(begTerm);
+                let truncatedText = origOgTitle;
+                
+                if (throwawayBegIndex != -1) {
+                    truncatedText = origOgTitle.substring(throwawayBegIndex + begTerm.length + 1);
 
                     if (!manipulatedOgTitles.includes(truncatedText))
                         manipulatedOgTitles.push(truncatedText);
                 }
+
+                consts.THROWAWAY_END_TERMS.forEach((endTerm) => {
+                    let throwawayEndIndex = origOgTitle.indexOf(endTerm);
+                    if (throwawayEndIndex != -1) {
+                        truncatedText = truncatedText.substring(0, throwawayEndIndex);
+
+                        if (!manipulatedOgTitles.includes(truncatedText))
+                            manipulatedOgTitles.push(truncatedText);
+                    }
+                    
+                    if (!manipulatedOgTitles.includes(truncatedText))
+                        manipulatedOgTitles.push(truncatedText);
+                })
+
                 
-                if (!manipulatedOgTitles.includes(truncatedText))
-                    manipulatedOgTitles.push(truncatedText);
             })
 
+            console.log('here are manipulated og titles', manipulatedOgTitles)
             
-        })
+            manipulatedOgTitles.forEach((ogTitle) => {
+                if (ogTitle.length >= consts.MIN_TITLE_LENGTH) {
+                    elResults = getElementsContainingText(ogTitle).filter(el => !(['SCRIPT', 'TITLE'].includes(el.nodeName)));
 
-        console.log('here are manipulated og titles', manipulatedOgTitles)
-        
-        manipulatedOgTitles.forEach((ogTitle) => {
-            if (ogTitle.length >= consts.MIN_TITLE_LENGTH) {
-                elResults = getElementsContainingText(ogTitle).filter(el => !(['SCRIPT', 'TITLE'].includes(el.nodeName)));
-
-                console.log('was exact title found', elResults)
+                    console.log('was exact title found', elResults)
+                
+                    //if the exact ogTitle text was not found, look for text that is similar enough
+                    if (!elResults.length) {
+                        let similarText = getFuzzyTextSimilarToHeading(ogTitle, false);
+                        if (similarText && similarText.length >= consts.MIN_TITLE_LENGTH)
+                            elResults = getElementsContainingText(similarText).filter(el => !(['SCRIPT', 'TITLE'].includes(el.nodeName)));
+                    }
             
-                //if the exact ogTitle text was not found, look for text that is similar enough
-                if (!elResults.length) {
-                    let similarText = getFuzzyTextSimilarToHeading(ogTitle, false);
-                    if (similarText && similarText.length >= consts.MIN_TITLE_LENGTH)
-                        elResults = getElementsContainingText(similarText).filter(el => !(['SCRIPT', 'TITLE'].includes(el.nodeName)));
+                    console.log(`results of looking for og title ${ogTitle} is` , elResults);
                 }
+            })
+    
         
-                console.log(`results of looking for og title ${ogTitle} is` , elResults);
-            }
-        })
-  
-       
-    }
-    catch(err) {
-        console.log('in og:title, error is', err);
-    }
+        }
+        catch(err) {
+            console.log('in og:title, error is', err);
+        }
 
-    try {
-        if (!elResults.length) {
-            let twitterTitle = htmlDecode(document.querySelector('meta[name="twitter:title"]').getAttribute('content'));
+        try {
+            if (!elResults.length) {
+                let twitterTitle = htmlDecode(document.querySelector('meta[name="twitter:title"]').getAttribute('content'));
 
-            if (twitterTitle.length >= consts.MIN_TITLE_LENGTH) {
-                elResults = getElementsContainingText(twitterTitle).filter(el => !(['SCRIPT', 'TITLE'].includes(el.nodeName)));
-            
-                //if the exact twitter title text was not found, look for text that is similar enough
-                if (!elResults.length) {
-                    let similarText = getFuzzyTextSimilarToHeading(twitterTitle, false);
-                    if (similarText && similarText.length >= consts.MIN_TITLE_LENGTH)
-                        elResults = getElementsContainingText(similarText).filter(el => !(['SCRIPT', 'TITLE'].includes(el.nodeName)));
+                if (twitterTitle.length >= consts.MIN_TITLE_LENGTH) {
+                    elResults = getElementsContainingText(twitterTitle).filter(el => !(['SCRIPT', 'TITLE'].includes(el.nodeName)));
+                
+                    //if the exact twitter title text was not found, look for text that is similar enough
+                    if (!elResults.length) {
+                        let similarText = getFuzzyTextSimilarToHeading(twitterTitle, false);
+                        if (similarText && similarText.length >= consts.MIN_TITLE_LENGTH)
+                            elResults = getElementsContainingText(similarText).filter(el => !(['SCRIPT', 'TITLE'].includes(el.nodeName)));
+                    }
+        
+                    console.log('results of looking for twitter titles', elResults);
                 }
-    
-                console.log('results of looking for twitter titles', elResults);
+            
+            }
+
+        }
+        catch(err) {
+            console.log('in twitter:title, error is', err)
+        }
+
+        /*
+        if og and twitter titles were not found on the page, look for h headings that have texts similar to the document's title +
+        if on ESPN and the only found title is inside an <a> tag (which is on the feed)
+        */
+        if (!elResults.length || (utils.extractHostname(window.location.href) == 'www.espn.com' && elResults.every((el => el.nodeName == 'A'))) ) {
+
+            let docTitle = document.querySelector('title').textContent;
+            if (docTitle.length >= consts.MIN_TITLE_LENGTH) {
+                let h1LevelHeadings = document.querySelectorAll('h1');
+                let h2LevelHeadings = document.querySelectorAll('h2');
+
+                console.log('akharesh', h1LevelHeadings, h2LevelHeadings)
+        
+                elResults = [...h1LevelHeadings, ...h2LevelHeadings].filter(heading => {
+                    let similarText = getFuzzyTextSimilarToHeading(docTitle, false, heading.textContent);
+                    return similarText != null;
+                }).filter(x => x.textContent.length >= consts.MIN_TITLE_LENGTH);
+        
+                console.log('heading tags with similar text to document title', elResults);
+            }
+
+            if (!elResults.length) {
+                if (utils.extractHostname(window.location.href) == 'www.deseret.com')
+                    elResults = document.querySelectorAll('.c-page-title');
             }
         
         }
-
-    }
-    catch(err) {
-        console.log('in twitter:title, error is', err)
-    }
-
-    /*
-    if og and twitter titles were not found on the page, look for h headings that have texts similar to the document's title +
-    if on ESPN and the only found title is inside an <a> tag (which is on the feed)
-    */
-    if (!elResults.length || (utils.extractHostname(window.location.href) == 'www.espn.com' && elResults.every((el => el.nodeName == 'A'))) ) {
-
-        let docTitle = document.querySelector('title').textContent;
-        if (docTitle.length >= consts.MIN_TITLE_LENGTH) {
-            let h1LevelHeadings = document.querySelectorAll('h1');
-            let h2LevelHeadings = document.querySelectorAll('h2');
-
-            console.log('akharesh', h1LevelHeadings, h2LevelHeadings)
-    
-            elResults = [...h1LevelHeadings, ...h2LevelHeadings].filter(heading => {
-                let similarText = getFuzzyTextSimilarToHeading(docTitle, false, heading.textContent);
-                return similarText != null;
-            }).filter(x => x.textContent.length >= consts.MIN_TITLE_LENGTH);
-    
-            console.log('heading tags with similar text to document title', elResults);
-        }
-
-        if (!elResults.length) {
-            if (utils.extractHostname(window.location.href) == 'www.deseret.com')
-                elResults = document.querySelectorAll('.c-page-title');
-        }
-      
     }
 
     elResults.forEach(heading => {

@@ -66,3 +66,8 @@
 [data-vuetify] .v-icon.v-icon {
     width: 15px !important;
 }
+
+
+[data-vuetify] .v-dialog__content {
+    z-index: 9999 !important;
+}
