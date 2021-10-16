@@ -233,6 +233,7 @@ export default {
     },
 
     findTitlesOnPage: (context, payload) => {
+        console.log('finding titles on page again from the beginning')
         return new Promise((resolve, reject) => {
   
             let candidateTitles = payload.candidateTitlesWSortedCustomTitles;
@@ -243,6 +244,7 @@ export default {
 
                 let withHeldVal = context.state.titlesStatuses[candidateTitle.id].isWithheld;
                 console.log('withheldVal', withHeldVal)
+                console.log('candidate titles', candidateTitles)
                 
                 let replacementCount = domHelpers.findAndReplaceTitle(candidateTitle, false , withHeldVal);
                 if (replacementCount) {
@@ -286,6 +288,7 @@ export default {
   
 
     setUpTitles: (context) => {
+        console.log('going to set up titles again')
         return new Promise((resolve, reject) => {
   
           let docInnerText = document.body.innerText;

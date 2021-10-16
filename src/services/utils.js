@@ -207,20 +207,25 @@ function hashCode(s) {
 }
 
 function extractHostname(url) {
-  var hostname;
+  let hostname;
   //find & remove protocol (http, ftp, etc.) and get hostname
 
-  if (url.indexOf("//") > -1) {
-      hostname = url.split('/')[2];
+  let keepQueryParam = false;
+  if (['facebook.com/photo/?fbid', 'facebook.com/watch', 'youtube.com/watch'].some(el => 
+    url.includes(el)))
+    keepQueryParam = true;
+
+  if (url.indexOf("//") != -1 ) {
+    hostname = url.split('//')[1];    
+    
+    if (keepQueryParam)
+      hostname = hostname.split('&')[0];
+    else
+      hostname = hostname.split('?')[0];
   }
   else {
-      hostname = url.split('/')[0];
+    console.log('what kind of url is it', url);
   }
-
-  //find & remove port number
-  hostname = hostname.split(':')[0];
-  //find & remove "?"
-  hostname = hostname.split('?')[0];
 
   return hostname;
 }

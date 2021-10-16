@@ -30,6 +30,22 @@ const THROWAWAY_END_TERMS = [
   '- Slashdot'
 ]
 
+const GLOBAL_BLACKLISTED_DOMAINS = [
+  'calendar.google.com',
+  'drive.google.com',
+  'play.hbomax.com',
+  'netflix.com',
+  'hulu.com',
+  'amazon.com',
+  'weather.com',
+  'paypal.com',
+  'ups.com',
+  'bankofamerica.com',
+  'chase.com',
+  'pnc.com'
+]
+
+
 export default {
   BASE_URL,
   CLIENT_URL,
@@ -42,5 +58,6 @@ export default {
   STRICTER_FUZZY_SCORE_THRESHOLD,
   INIDRECT_URL_DOMAINS,
   THROWAWAY_BEG_TERMS,
-  THROWAWAY_END_TERMS
+  THROWAWAY_END_TERMS,
+  GLOBAL_BLACKLISTED_DOMAINS
 }

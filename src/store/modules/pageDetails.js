@@ -1,4 +1,6 @@
 import utils from '@/services/utils'
+import domHelpers from '@/lib/domHelpers';
+import constants from '@/lib/constants';
 
 export default {
   namespaced: true,
@@ -38,18 +40,42 @@ export default {
           lastUrl = url;
           onUrlChange();
         }
-      }).observe(document, {subtree: true, childList: true});
+      }).observe(document, { subtree: true, childList: true });
       
       function onUrlChange() {
-        context.dispatch('setUpPageUrl');
+        context.dispatch('setUpPageUrl')
+        .then(() => {
+          console.log('url changed to ', context.state.url);
+          context.dispatch('setBlackListStatus')
+          .then(() => {
+            if (!context.state.isBlacklisted) {
+              domHelpers.removeAllModifications()
+              window.setTimeout(() => {
+                domHelpers.identifyPotentialTitles();
+                context.dispatch('titles/setUpTitles', true, { root: true })
+                .then(() => {
+                  context.dispatch('titles/setTitlesFetched', true, { root: true });
+                })
+              }, 1000)
+            }
+          })
+  
+
+        })
       }
     },
 
     setUpPageUrl: function(context) {
-
       return new Promise((resolve, reject) => {
-          context.commit('set_url', window.location.href);
-          resolve();
+        let sanitizedUrl;
+        if ( ['facebook.com/photo/?fbid', 'facebook.com/watch', 'youtube.com/watch'].some(el => 
+          window.location.href.includes(el)))
+          sanitizedUrl = window.location.href.split('&')[0];
+        else
+          sanitizedUrl = window.location.href.split('?')[0]
+          
+        context.commit('set_url', sanitizedUrl);
+        resolve();
       })
     },
 
@@ -96,19 +122,34 @@ export default {
       })
     },
 
-    setBlackListStatus: function(context, payload) {
-      return new Promise((resolve, reject) => {
-        context.commit('set_black_list_status', payload);
-        resolve();
-      })
-    },
-
     setTimeOpened: (context) => {
       return new Promise((resolve, reject) => {
         context.commit('set_time_opened');
         resolve();
       })
     },
+
+    setBlackListStatus: function(context) {
+      return new Promise((resolve, reject) => {
+        let pageHostname = utils.extractHostname(context.state.url);
+        let pageIsBlackListed = false;
+
+        let allBlackLists = constants.GLOBAL_BLACKLISTED_DOMAINS;
+        let userPreferences = context.rootState['preferences'].userPreferences;
+        console.log('user preferences', userPreferences);
+        if ('blackListedWebsites' in userPreferences) {
+          allBlackLists = allBlackLists.concat(userPreferences.blackListedWebsites);
+        }
+
+        pageIsBlackListed = allBlackLists.some(blacklistedWebsite => 
+          pageHostname.includes(blacklistedWebsite)
+        )
+        context.commit('set_black_list_status', pageIsBlackListed);
+        console.info('is page blacklisted:', pageIsBlackListed);
+
+        resolve();
+      })
+    }
 
   }
 }

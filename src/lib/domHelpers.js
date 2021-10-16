@@ -106,6 +106,7 @@ function createEditButton () {
 }
 
 function acceptInputOnHeadline (headlineTag) {
+    console.log('button add mikone ya na', headlineTag.getAttribute('data-headline-id'))
 
     if (headlineTag.getAttribute('data-headline-id') === null) {
 
@@ -123,7 +124,10 @@ function acceptInputOnHeadline (headlineTag) {
             editButton.classList.add('title-background-light');
         }
 
+        console.log('going to add button', headlineTag)
+
         headlineTag.appendChild(editButton);
+        console.log('headline tag after adding button', headlineTag)
     }
 }
 
@@ -216,31 +220,30 @@ function findAndReplaceTitle(title, remove, withheld) {
             console.log('elements containing found', tmpResults)
             /*
             Take the elements whose href attribute match the URL of the post that is returned
-            from the server
+            from the server in order to minimize false positives because of fuzzy matching
             */      
             results = tmpResults.filter( el => {
+
+                // If there's no post associated with the title as a result of an error in the backend
+                if (title.Post === undefined ) 
+                    return true;
                 /*
                 If the current page has the same URL as the associated post of the returned title, or if
-                the current page is among the special websits that have indirect URLs, then the result is accepted
+                the current page is among the special websites that have indirect URLs, then the result is accepted
                 */
-                if (title.Post.url.split('//')[1] == window.location.href.split('//')[1].split('?')[0] ||
+                if (utils.extractHostname(title.Post.url) == utils.extractHostname(window.location.href) ||
                     consts.INIDRECT_URL_DOMAINS.includes(utils.extractHostname(window.location.href)))
                 return true;
 
                 /*
-                Otherwise, check the href attribute of the closes ancestor of the element
+                Otherwise, check the href attribute of the closest ancestor of the element
                 */
                 let elementLink = el.closest(["a"]).getAttribute('href');
-                let sanitizedUrl;
-                if (elementLink.indexOf("//") > -1)
-                    sanitizedUrl = elementLink.split('//')[1].split('?')[0];
-                else
-                    sanitizedUrl = elementLink.split('?')[0];
-
+                let sanitizedUrl = utils.extractHostname(elementLink);
                 console.log('sanitized', sanitizedUrl)
-                console.log(title.Post.url.split('//')[1], title.Post.url.split('//')[1].includes(sanitizedUrl))
+                // console.log(title.Post.url.split('//')[1], title.Post.url.split('//')[1].includes(sanitizedUrl))
                 
-                return (title.Post.url.split('//')[1].includes(sanitizedUrl));
+                return (utils.extractHostname(title.Post.url).includes(sanitizedUrl));
             })
                         
         }
@@ -255,18 +258,71 @@ function findAndReplaceTitle(title, remove, withheld) {
         if (el.nodeName != 'SCRIPT') {
             nonScriptResultsCount += 1;
 
-            //if headline has not been modified yet
-            if (!el.classList.contains('headline-modified')) {
+            const originalTitle = el.textContent;
+            let headlineIsmodified = el.classList.contains('headline-modified');
+
+            /*
+            Adding alt headlines to Youtube is a special case. The title of the main video has a structure like the following:
+            <h1 class="title style-scope ytd-video-primary-info-renderer title-background-light">
+                <yt-formatted-string force-default-style="" class="style-scope ytd-video-primary-info-renderer">
+                video title
+                </yt-formatted-string>
+            </h1>
+            When a new video gets dynamically added to the page (because the user clicks on a new video), only the text content
+            of the <yt-formated-string> node gets replaced. If the content of the node prior to loading the new video is empty,
+            then for some reason the new text does not get added. If the content changes before the new video is loaded, sometimes 
+            the new title is appended to the old title. Therefore, the <yt-formatted-string> node needs to be preserved as is.
+            Therefore, the <yt-formatted-string> node is simply made invisible by setting its display to none. The container of the 
+            <yt-formatted-string> node rather than the <yt-formatted-string> node itself is taken as the element to which the
+            alt headline (em node) and the the stylized original headline (del node) need to be added.
+            Because when after page mutations, the same alt headlines may be looked for replacement on the page, the container element
+            in the case of Youtube is given a special class that is checked for. In non-Youtube pages, because the original text is
+            deleted and only resides inside the <del> node, it suffices to give the <del> node the special class which serves both
+            for presentational aspects and for checking whether the original headline has been modified.
+            */
+            if (utils.extractHostname(window.location.href).includes('youtube.com')) {
+                el = el.parentNode;
+                headlineIsmodified = el.classList.contains('headline-modified-youtube-container');
+            }
+            console.log('parent element', el)
+
+            //if headline has not been modified yet, add the alt headline, stylize the headlines, and remove the edit button
+            if (!headlineIsmodified) {
 
                 let newFirstChild, newSecondChild;
                 if (!withheld) {
-                    const originalTitle = el.textContent;
-                    el.textContent = "";
-                    newFirstChild = addAltTitleNodeToHeadline(title)
-    
-                    newSecondChild = document.createElement('del');
-                    newSecondChild.classList.add('headline-modified');
-                    newSecondChild.appendChild(document.createTextNode(originalTitle));
+
+                    if (!utils.extractHostname(window.location.href).includes('youtube.com')) {
+                        el.textContent = "";
+
+                        newFirstChild = addAltTitleNodeToHeadline(title);
+        
+                        newSecondChild = document.createElement('del');
+                        newSecondChild.classList.add('headline-modified');
+                        newSecondChild.appendChild(document.createTextNode(originalTitle));
+                    }
+                    else {
+                        el.classList.add('headline-modified-youtube-container');
+
+                        //removing the edit button
+                        console.log('removing edit button');
+                        [...el.children].filter(childEl => childEl.nodeName == 'BUTTON' && childEl.classList.contains('rounded-edit-button')).forEach(childEl => {
+                            childEl.parentNode.removeChild(childEl);
+                        });
+
+                        console.log('alan gharare none she', headlineIsmodified, 'is headline modified');
+                        console.log('title to be added', title);
+                        [...el.children].filter(childEl => childEl.nodeName == 'YT-FORMATTED-STRING' && childEl.classList.contains('ytd-video-primary-info-renderer') &&
+                        childEl.hasAttribute('force-default-style')).forEach(childEl => {
+                            childEl.style.display = "none";
+                        });
+
+                        newFirstChild = addAltTitleNodeToHeadline(title);
+                        newSecondChild = document.createElement('del');
+                        newSecondChild.classList.add('headline-modified');
+                        newSecondChild.appendChild(document.createTextNode(originalTitle));
+                    }
+                      
                 }
 
                 let clickTarget = withheld ? el : newSecondChild;
@@ -283,7 +339,8 @@ function findAndReplaceTitle(title, remove, withheld) {
                 /*
                 if not on the actual article's page, e.g., on a homepage of a news website
                 */
-                if (title.Post.url.split('//')[1] != window.location.href.split('//')[1].split('?')[0] && !customAttr) {
+               console.log('title *******', title)
+                if (utils.extractHostname(title.Post.url) != utils.extractHostname(window.location.href) && !customAttr) {
 
                     clickTarget.addEventListener('click', function(ev) {
                         browser.runtime.sendMessage({
@@ -313,20 +370,29 @@ function findAndReplaceTitle(title, remove, withheld) {
                 of the original headline should be restored back to its original state (in case there is no alt headline
                 left for the headline)
                  */
-                let headlineContainer = el.parentNode;
+                let headlineContainer = utils.extractHostname(window.location.href).includes('youtube.com') ? el : el.parentNode;
 
-                if (headlineContainer.children.length == 2) {
-                    headlineContainer.removeChild(headlineContainer.children[0]);
+                if (headlineContainer.children.length >= 2) {
+                    
+                    let childtoRemove = [...headlineContainer.children].filter(childEl => childEl.nodeName == 'EM' && 
+                        childEl.classList.contains('new-alt-headline'))[0];
+                    console.log('child to remove', childtoRemove)
+                    headlineContainer.removeChild(childtoRemove);
+
+                    let originalTextHolderEl = [...headlineContainer.children].filter(childEl => childEl.nodeName == 'DEL' && 
+                    childEl.classList.contains('headline-modified'))[0];
+
                     if (remove == true) {
-                        headlineContainer.appendChild(document.createTextNode(headlineContainer.children[0].textContent));
-                        headlineContainer.removeChild(headlineContainer.children[0]);
+                        headlineContainer.appendChild(originalTextHolderEl.textContent);
+                        headlineContainer.removeChild(originalTextHolderEl);
 
-                        acceptInputOnHeadline(headlineContainer)
+                        acceptInputOnHeadline(headlineContainer);
 
                     }
                     else {
-                        let newFirstChild = addAltTitleNodeToHeadline(title)
-                        headlineContainer.insertBefore(newFirstChild, headlineContainer.children[0])
+                        console.log('aya inja raft chera?')
+                        let newAltContainerEl = addAltTitleNodeToHeadline(title);
+                        headlineContainer.insertBefore(newAltContainerEl, originalTextHolderEl);
                     }
                     
                 }
@@ -337,6 +403,73 @@ function findAndReplaceTitle(title, remove, withheld) {
     store.dispatch('pageObserver/reconnectObserver');
 
     return nonScriptResultsCount;
+}
+
+/*
+This function is used when the URL changes without the page refreshing. All modified headlines will be
+deleted and their container restored back to their original style. For headlines that did not have suggestions, 
+the edit button will be removed.
+The pageDetails store module is responsible for invoking the function for identifying headlines on the page 
+(for alt headline suggestion) or finding the headlines that already have.
+*/
+function removeAllModifications() {
+    console.log('getting rid of modifications')
+    store.dispatch('pageObserver/disconnectObserver');
+
+    [...document.querySelectorAll('em.new-alt-headline')].forEach(el => {
+        el.parentNode.removeChild(el);
+    });
+
+    if (!utils.extractHostname(window.location.href).includes('youtube.com')) {
+    
+        let originalTextHolderEl = [...document.querySelectorAll('del.headline-modified')];
+        let headlineContainers = originalTextHolderEl.map(el => el.parentNode);
+
+        headlineContainers.forEach(container => {
+            container.removeChild(container.children[0]);
+            container.appendChild(document.createTextNode(container.children[0].textContent));
+            console.log('chi add kard', document.createTextNode(container.children[0].textContent))
+            container.removeChild(container.children[0]);
+        })
+    }
+
+    /* On Youtube, the URL can change as a new video is clicked. The alt titles that were previously added to the page
+    need to be removed removing edit buttons from unmodified headlines in Youtube where the headline gets dynamically replaced,
+    leaving the previous button on the DOM
+    */
+    if (utils.extractHostname(window.location.href).includes('youtube.com')) {
+
+        console.log('elements to delete', [...document.querySelectorAll('del.headline-modified')]);
+      
+        [...document.querySelectorAll('del.headline-modified')].forEach(el => {
+            el.parentNode.removeChild(el);
+        });
+
+        console.log('mage inja nayumad?');
+        [...document.querySelectorAll('yt-formatted-string.ytd-video-primary-info-renderer[force-default-style]')].forEach(el => {
+            el.style.display = "initial"; });
+
+        [...document.querySelectorAll('.headline-modified-youtube-container')].forEach(el => {
+            el.classList.remove('headline-modified-youtube-container');
+        })
+
+        console.log('removing edit button insider modification remover');
+        let headingContainers = [...document.querySelectorAll('[data-headline-id]')];
+        let editButtons = headingContainers.map(el => el.children[0]).filter(el =>
+            el != undefined && el.nodeName == 'BUTTON' && el.classList.contains('rounded-edit-button'));
+        editButtons.forEach(editButton => {
+            console.log('edit button inside for each', editButton)
+            editButton.parentNode.removeChild(editButton);
+        })
+
+        headingContainers.forEach(headingContainer => {
+            headingContainer.removeAttribute('data-headline-id');
+        })
+
+    }
+    
+    store.dispatch('pageObserver/reconnectObserver');
+
 }
 
 
@@ -392,13 +525,20 @@ function identifyPotentialTitles() {
     let elResults = [];
 
     if (utils.extractHostname(window.location.href).includes('feedly.com')) {
-
         elResults = [document.querySelector('.entryTitle')].filter(el => el != null);
-        console.log('feedly results', elResults)
+    }
+    /*
+    A special case is made for Youtube because when a video is clicked on, the page doesn't refresh
+    and the OGP metadata do not refresh either. Therefore, the exact element that holds the video title
+    is looked for. This needs to change if Youtube changes their UI.
+    */
+    else if (utils.extractHostname(window.location.href).includes('youtube.com')) {
+        elResults = [document.querySelector('h1.title.ytd-video-primary-info-renderer')];
     }
     else {
         try {
             let origOgTitle = htmlDecode(document.querySelector('meta[property="og:title"]').getAttribute('content'));
+            console.log('original og title', origOgTitle)
 
             let manipulatedOgTitles = [origOgTitle];
 
@@ -441,7 +581,8 @@ function identifyPotentialTitles() {
                     if (!elResults.length) {
                         let similarText = getFuzzyTextSimilarToHeading(ogTitle, false);
                         if (similarText && similarText.length >= consts.MIN_TITLE_LENGTH)
-                            elResults = getElementsContainingText(similarText).filter(el => !(['SCRIPT', 'TITLE'].includes(el.nodeName)));
+                            elResults = getElementsContainingText(similarText).filter(el => 
+                                !(['SCRIPT', 'TITLE'].includes(el.nodeName)));
                     }
             
                     console.log(`results of looking for og title ${ogTitle} is` , elResults);
@@ -508,8 +649,14 @@ function identifyPotentialTitles() {
     }
 
     elResults.forEach(heading => {
-        if (!heading.classList.contains('headline-modified'))       
+        console.log('going to set up event listener on headline', heading.classList)
+        let headlineIsmodified = utils.extractHostname(window.location.href).includes('youtube.com') ? 
+            heading.classList.contains('headline-modified-youtube-container') : heading.classList.contains('headline-modified');
+        console.log('which heading?', heading, 'is it modified yet?', headlineIsmodified)
+        if (!headlineIsmodified) {
             acceptInputOnHeadline(heading);
+        }    
+            
     })
 
     store.dispatch('pageObserver/reconnectObserver');
@@ -518,5 +665,6 @@ function identifyPotentialTitles() {
 export default {
     findAndReplaceTitle,
     identifyPotentialTitles,
-    removeEventListenerFromTitle
+    removeEventListenerFromTitle,
+    removeAllModifications
 }

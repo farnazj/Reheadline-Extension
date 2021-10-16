@@ -8,6 +8,20 @@ export default {
   },
   methods: {
 
+    // getBlackListStatus() {
+    //   let pageHostname = utils.extractHostname(this.url);
+    //   let pageIsBlackListed = false;
+
+    //   if ('blackListedWebsites' in this.userPreferences) {
+    //     pageIsBlackListed = this.userPreferences.blackListedWebsites.some(blacklistedWebsite => 
+    //       pageHostname.includes(blacklistedWebsite)
+    //     )
+    //   }
+
+    //   console.info('is page blacklisted:', pageIsBlackListed);
+    //   return this.setBlackListStatus(pageIsBlackListed);
+    // },
+
     fetchTitlesAndRelationships() {
 
       Promise.all([this.setUpPageUrl(), this.setUpURLObserver()])
@@ -23,33 +37,22 @@ export default {
           this.fetchTrusteds();
       
       // this.fetchFollowers();
+      let thisRef = this;
 
       this.getUserPreferences()
       .then(() => {
+        thisRef.setBlackListStatus()
+        .then(() => {
+          if (!thisRef.isBlackListed) {
 
-        console.log('user preferences:', this.userPreferences);
-
-        let pageHostname = utils.extractHostname(this.url);
-        let pageIsBlackListed = false;
-
-        if ('blackListedWebsites' in this.userPreferences) {
-          pageIsBlackListed = this.userPreferences.blackListedWebsites.some(blacklistedWebsite => 
-            pageHostname.includes(blacklistedWebsite)
-          )
-        }
-        
-        this.setBlackListStatus(pageIsBlackListed);
-        console.info('is page blacklisted:', pageIsBlackListed)
-
-        if (!pageIsBlackListed) {
-
-          if ( !this.titles.length && !this.titlesFetched ) {
-            this.setUpTitles()
-            .then( () => {
-                this.setTitlesFetched(true);
-            })
+            if ( !this.titles.length && !this.titlesFetched ) {
+              this.setUpTitles()
+              .then( () => {
+                  this.setTitlesFetched(true);
+              })
+            }
           }
-        }
+        })
         
       })
       
@@ -67,7 +70,8 @@ export default {
       'setUpPageUrl',
       'IsGloballyWhiteListed',
       'setBlackListStatus',
-      'setUpURLObserver'
+      'setUpURLObserver',
+      'setBlackListStatus'
     ]),
     ...mapActions('pageObserver', [
         'setUpObserver'
@@ -89,7 +93,8 @@ export default {
       'userPreferences'
     ]),
     ...mapState('pageDetails', [
-      'url'
+      'url',
+      'isBlacklisted'
     ])
   }
 
