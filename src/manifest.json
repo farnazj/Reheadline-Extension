@@ -32,6 +32,7 @@
     }
   ],
   "browser_action": {
+    "default_popup": "popup.html",
     "default_title": "Reheadline",
     "default_icon": {
       "19": "icons/16_.png",

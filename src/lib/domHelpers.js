@@ -569,7 +569,6 @@ function identifyPotentialTitles() {
                     if (!manipulatedOgTitles.includes(truncatedText))
                         manipulatedOgTitles.push(truncatedText);
                 })
-
                 
             })
 

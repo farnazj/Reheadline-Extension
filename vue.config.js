@@ -6,6 +6,11 @@ module.exports = {
       template: 'public/browser-extension.html',
       entry: './src/options/main.js',
       title: 'Options'
+    },
+    popup: {
+      template: 'public/browser-extension.html',
+      entry: './src/popup/main.js',
+      title: 'Popup'
     }
   },
 

@@ -6,7 +6,8 @@
 
 <script>
 import setupHelpers from '@/mixins/setupHelpers';
-import { mapActions } from 'vuex'
+import domHelpers from '@/lib/domHelpers'
+import { mapState, mapActions } from 'vuex'
 
 export default {
   name: 'insertedApp',
@@ -31,8 +32,29 @@ export default {
       }
 
       this.setTimeOpened();
-
     });
+
+    let thisRef = this;
+
+    browser.runtime.onMessage.addListener(request => {
+      if (request.type == 'cs_white_list_page') {
+        thisRef.addUrlToWhiteLists()
+        .then(() => {
+          domHelpers.identifyPotentialTitles();
+        })
+        return Promise.resolve({ response: "identified page titles" });
+      }
+      if (request.type == 'cs_is_url_white_listed') {
+        console.log('got contacted')
+        return Promise.resolve({ response: thisRef.isWhiteListed });
+      }
+    })
+
+  },
+  computed: {
+    ...mapState('pageDetails', [
+        'isWhiteListed'
+    ])
   },
   methods: {
     ...mapActions('auth', [
@@ -40,7 +62,8 @@ export default {
       'logout'
     ]),
     ...mapActions('pageDetails', [
-      'setTimeOpened'
+      'setTimeOpened',
+      'addUrlToWhiteLists'
     ])
   },
   mixins: [setupHelpers]

@@ -21,7 +21,6 @@ browser.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         resolve(res)
       })
       .catch(err => {
-        console.log(err.response.data.message)
         reject({ message: err.response.data.message });
       })
     })
@@ -182,7 +181,6 @@ browser.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 
       titleServices.deleteCustomTitle(request.data.reqBody)
       .then(res => {
-        console.log('got the response', res)
         resolve(res);
       })
       .catch(err => {
@@ -241,7 +239,6 @@ browser.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     return new Promise((resolve, reject) => {
       originServices.isUrlWhiteListed(request.data.headers)
       .then(res => {
-        console.log(res, res.data)
         resolve(res.data);
       })
       .catch(err => {

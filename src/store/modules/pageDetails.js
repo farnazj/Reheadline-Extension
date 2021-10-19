@@ -46,7 +46,7 @@ export default {
         context.dispatch('setUpPageUrl')
         .then(() => {
           console.log('url changed to ', context.state.url);
-          context.dispatch('setBlackListStatus')
+          Promise.all([context.dispatch('setBlackListStatus'), context.dispatch('IsGloballyWhiteListed')])
           .then(() => {
             if (!context.state.isBlacklisted) {
               domHelpers.removeAllModifications()
@@ -90,9 +90,19 @@ export default {
           }
         })
         .then( response => {
-          // console.log('is it whitelisted', response)
-            context.commit('set_white_list_status', response);
-            resolve();
+
+          /*
+          A message is sent to the popup about a potential change in the URL
+          and whether the new URL is whitelisted so that if the popup is open,
+          it can change its message to the appropriate message.
+          */
+          browser.runtime.sendMessage({
+            type: 'popup_potential_whitelist_status',
+            data: response
+          });
+
+          context.commit('set_white_list_status', response);
+          resolve();
         }).catch(error => {
             console.log(error)
             reject(error)
