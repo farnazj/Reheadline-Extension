@@ -233,7 +233,6 @@ export default {
     },
 
     findTitlesOnPage: (context, payload) => {
-        console.log('finding titles on page again from the beginning')
         return new Promise((resolve, reject) => {
   
             let candidateTitles = payload.candidateTitlesWSortedCustomTitles;
@@ -288,7 +287,6 @@ export default {
   
 
     setUpTitles: (context) => {
-        console.log('going to set up titles again')
         return new Promise((resolve, reject) => {
   
           let docInnerText = document.body.innerText;

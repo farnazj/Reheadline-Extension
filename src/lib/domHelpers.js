@@ -106,7 +106,6 @@ function createEditButton () {
 }
 
 function acceptInputOnHeadline (headlineTag) {
-    console.log('button add mikone ya na', headlineTag.getAttribute('data-headline-id'))
 
     if (headlineTag.getAttribute('data-headline-id') === null) {
 
@@ -124,10 +123,7 @@ function acceptInputOnHeadline (headlineTag) {
             editButton.classList.add('title-background-light');
         }
 
-        console.log('going to add button', headlineTag)
-
         headlineTag.appendChild(editButton);
-        console.log('headline tag after adding button', headlineTag)
     }
 }
 
@@ -158,8 +154,8 @@ function getFuzzyTextSimilarToHeading(targetTitleText, isSearchingForServerTitle
     in long paragraphs, we limit the search to only those leaf nodes with fewer than consts.MAX_TITLE_LENGTH
     characters. innerText is style aware and the advantage of using it is (e.g., compared to textContent)
     is that it does not return the content of the hidden elements. However, the text returned by it is
-    affected by CSS styling (e.g., upper/lower case). Therefore, here, we convert the search term as well asarray containing
-    leaf nodes' contents to lowercase
+    affected by CSS styling (e.g., upper/lower case). Therefore, here, we convert the search term as well as
+    the array containing leaf nodes' contents to lowercase
     */
     let textCorpus, scoreThreshold;
     if (!searchSnippet) { //looking within the entire body of the document to find a server returned title
@@ -217,7 +213,6 @@ function findAndReplaceTitle(title, remove, withheld) {
 
         if (similarText) {
             let tmpResults = getElementsContainingText(similarText);
-            console.log('elements containing found', tmpResults)
             /*
             Take the elements whose href attribute match the URL of the post that is returned
             from the server in order to minimize false positives because of fuzzy matching
@@ -240,7 +235,6 @@ function findAndReplaceTitle(title, remove, withheld) {
                 */
                 let elementLink = el.closest(["a"]).getAttribute('href');
                 let sanitizedUrl = utils.extractHostname(elementLink);
-                console.log('sanitized', sanitizedUrl)
                 // console.log(title.Post.url.split('//')[1], title.Post.url.split('//')[1].includes(sanitizedUrl))
                 
                 return (utils.extractHostname(title.Post.url).includes(sanitizedUrl));
@@ -284,7 +278,6 @@ function findAndReplaceTitle(title, remove, withheld) {
                 el = el.parentNode;
                 headlineIsmodified = el.classList.contains('headline-modified-youtube-container');
             }
-            console.log('parent element', el)
 
             //if headline has not been modified yet, add the alt headline, stylize the headlines, and remove the edit button
             if (!headlineIsmodified) {
@@ -302,16 +295,15 @@ function findAndReplaceTitle(title, remove, withheld) {
                         newSecondChild.appendChild(document.createTextNode(originalTitle));
                     }
                     else {
+                        //the parent element is given a special class
                         el.classList.add('headline-modified-youtube-container');
 
                         //removing the edit button
-                        console.log('removing edit button');
                         [...el.children].filter(childEl => childEl.nodeName == 'BUTTON' && childEl.classList.contains('rounded-edit-button')).forEach(childEl => {
                             childEl.parentNode.removeChild(childEl);
                         });
 
-                        console.log('alan gharare none she', headlineIsmodified, 'is headline modified');
-                        console.log('title to be added', title);
+                        //the special element that needs to be preserved is made to disappear via CSS
                         [...el.children].filter(childEl => childEl.nodeName == 'YT-FORMATTED-STRING' && childEl.classList.contains('ytd-video-primary-info-renderer') &&
                         childEl.hasAttribute('force-default-style')).forEach(childEl => {
                             childEl.style.display = "none";
@@ -326,6 +318,19 @@ function findAndReplaceTitle(title, remove, withheld) {
                 }
 
                 let clickTarget = withheld ? el : newSecondChild;
+
+                /*
+                For Youtube, the ancestor element that contains the title (for videos suggested on the side,
+                in a playlist, etc., rather than the main video that is being played) has a sibling that contains
+                a few of the frames of the video . If that video is clicked, because it is a sibling of the title,
+                any event listener defined on the title will not be triggered. Therefore, To capture clicks on both
+                siblings, we traverse up the DOM tree until we arrive at an ancestor element that contains both. This
+                element has the id #dismissible.
+                */
+                if (utils.extractHostname(window.location.href).includes('youtube.com')) {
+                    clickTarget = el.closest('#dismissible');
+                }
+
                 /*
                 Because the class headline-modified is not set on a title that is withheld
                 for experimental purposes, this part of the code can repeatedly get executed
@@ -339,10 +344,19 @@ function findAndReplaceTitle(title, remove, withheld) {
                 /*
                 if not on the actual article's page, e.g., on a homepage of a news website
                 */
-               console.log('title *******', title)
                 if (utils.extractHostname(title.Post.url) != utils.extractHostname(window.location.href) && !customAttr) {
 
                     clickTarget.addEventListener('click', function(ev) {
+
+                        /*
+                        It is possible that the target element that has been clicked on Youtube is a direct descendent
+                        of (i.e., a contained element within) the menu that is used for dismissing the video, adding it
+                        to a queue, etc., rather than actually clicking on the video. I choose to consider those cases
+                        as clicking on the video because otherwise, special cases need to be considered for the various
+                        Youtube pages, e.g., history, suggested videos on the side, playlists, homepage, etc. as the menu
+                        contents change depending on what the page is.
+                        */
+                        
                         browser.runtime.sendMessage({
                             type: 'log_interaction',
                             interaction: {
@@ -376,7 +390,6 @@ function findAndReplaceTitle(title, remove, withheld) {
                     
                     let childtoRemove = [...headlineContainer.children].filter(childEl => childEl.nodeName == 'EM' && 
                         childEl.classList.contains('new-alt-headline'))[0];
-                    console.log('child to remove', childtoRemove)
                     headlineContainer.removeChild(childtoRemove);
 
                     let originalTextHolderEl = [...headlineContainer.children].filter(childEl => childEl.nodeName == 'DEL' && 
@@ -390,7 +403,6 @@ function findAndReplaceTitle(title, remove, withheld) {
 
                     }
                     else {
-                        console.log('aya inja raft chera?')
                         let newAltContainerEl = addAltTitleNodeToHeadline(title);
                         headlineContainer.insertBefore(newAltContainerEl, originalTextHolderEl);
                     }
@@ -413,7 +425,7 @@ The pageDetails store module is responsible for invoking the function for identi
 (for alt headline suggestion) or finding the headlines that already have.
 */
 function removeAllModifications() {
-    console.log('getting rid of modifications')
+    console.log('removing previous headline modifications')
     store.dispatch('pageObserver/disconnectObserver');
 
     [...document.querySelectorAll('em.new-alt-headline')].forEach(el => {
@@ -428,7 +440,6 @@ function removeAllModifications() {
         headlineContainers.forEach(container => {
             container.removeChild(container.children[0]);
             container.appendChild(document.createTextNode(container.children[0].textContent));
-            console.log('chi add kard', document.createTextNode(container.children[0].textContent))
             container.removeChild(container.children[0]);
         })
     }
@@ -438,14 +449,11 @@ function removeAllModifications() {
     leaving the previous button on the DOM
     */
     if (utils.extractHostname(window.location.href).includes('youtube.com')) {
-
-        console.log('elements to delete', [...document.querySelectorAll('del.headline-modified')]);
       
         [...document.querySelectorAll('del.headline-modified')].forEach(el => {
             el.parentNode.removeChild(el);
         });
 
-        console.log('mage inja nayumad?');
         [...document.querySelectorAll('yt-formatted-string.ytd-video-primary-info-renderer[force-default-style]')].forEach(el => {
             el.style.display = "initial"; });
 
@@ -453,12 +461,10 @@ function removeAllModifications() {
             el.classList.remove('headline-modified-youtube-container');
         })
 
-        console.log('removing edit button insider modification remover');
         let headingContainers = [...document.querySelectorAll('[data-headline-id]')];
-        let editButtons = headingContainers.map(el => el.children[0]).filter(el =>
+        let editButtons = headingContainers.map(el => [...el.children]).flat().filter(el =>
             el != undefined && el.nodeName == 'BUTTON' && el.classList.contains('rounded-edit-button'));
         editButtons.forEach(editButton => {
-            console.log('edit button inside for each', editButton)
             editButton.parentNode.removeChild(editButton);
         })
 
@@ -498,8 +504,6 @@ function openCustomTitlesDialog(ev) {
     //The economist h1's have a subtitle as well as a title node inside them (separated by a br node)
     if (utils.extractHostname(window.location.href) == "www.economist.com" && titleEl.children.length == 3 )
         titleEl = document.querySelector('[data-test-id="Article Headline"]');
-
-    console.log('chi shodeee', titleEl.textContent.trim())
     
     store.dispatch('titles/setTitlesDialogVisibility', true);
     store.dispatch('titles/setDisplayedTitle', { 
@@ -629,15 +633,12 @@ function identifyPotentialTitles() {
             if (docTitle.length >= consts.MIN_TITLE_LENGTH) {
                 let h1LevelHeadings = document.querySelectorAll('h1');
                 let h2LevelHeadings = document.querySelectorAll('h2');
-
-                console.log('akharesh', h1LevelHeadings, h2LevelHeadings)
         
                 elResults = [...h1LevelHeadings, ...h2LevelHeadings].filter(heading => {
                     let similarText = getFuzzyTextSimilarToHeading(docTitle, false, heading.textContent);
                     return similarText != null;
                 }).filter(x => x.textContent.length >= consts.MIN_TITLE_LENGTH);
         
-                console.log('heading tags with similar text to document title', elResults);
             }
 
             if (!elResults.length) {
@@ -648,11 +649,12 @@ function identifyPotentialTitles() {
         }
     }
 
+    elResults = elResults.filter(elResult => elResult); //for removing null elements
     elResults.forEach(heading => {
-        console.log('going to set up event listener on headline', heading.classList)
+        
         let headlineIsmodified = utils.extractHostname(window.location.href).includes('youtube.com') ? 
             heading.classList.contains('headline-modified-youtube-container') : heading.classList.contains('headline-modified');
-        console.log('which heading?', heading, 'is it modified yet?', headlineIsmodified)
+
         if (!headlineIsmodified) {
             acceptInputOnHeadline(heading);
         }    
