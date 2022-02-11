@@ -11,17 +11,19 @@ function getElementsContainingText(text) {
 
     let xpath, query;
     let uncurlifiedText = generalUtils.uncurlify(text).toLowerCase();
+    // let curlifiedText = generalUtils.curlify(text).toLowerCase();
 
     let results = [];
 
-    let xpathExtension = utils.extractHostname(window.location.href) == "www.nationalgeographic.com" ? 'or ancestor-or-self::div' : ''; //in National Geographic the links are in fact divs
+    let xpathExtension = utils.extractHostname(window.location.href).includes("www.nationalgeographic.com") ? 'or ancestor-or-self::div' : ''; //in National Geographic the links are in fact divs
 
     try {
         xpath = `//*[(ancestor-or-self::h1 or ancestor-or-self::h2 or ancestor-or-self::h3 or 
         ancestor-or-self::h4 or ancestor-or-self::h5 or ancestor-or-self::h6 or ancestor-or-self::a ${xpathExtension})
          and ( contains(translate(text(),"ABCDEFGHIJKLMNOPQRSTUVWXYZ",
          "abcdefghijklmnopqrstuvwxyz"), 
-         "${text}") or contains(translate(text(),"ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+         "${text}") or 
+         contains(translate(text(),"ABCDEFGHIJKLMNOPQRSTUVWXYZ",
          "abcdefghijklmnopqrstuvwxyz"), 
          "${uncurlifiedText}")
          )]`;
@@ -37,7 +39,7 @@ function getElementsContainingText(text) {
             "abcdefghijklmnopqrstuvwxyz"), 
             '${text}') or contains(translate(text(),"ABCDEFGHIJKLMNOPQRSTUVWXYZ",
             "abcdefghijklmnopqrstuvwxyz"), 
-            '${uncurlifiedText}')
+            '${uncurlifiedText}') 
             )]`;
 
             query = document.evaluate(xpath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);  
@@ -47,6 +49,7 @@ function getElementsContainingText(text) {
     for (let i = 0, length = query.snapshotLength; i < length; ++i) {
         results.push(query.snapshotItem(i));
     }
+    console.log('tahesh chi shod', results)
 
     return results;
 }
@@ -164,10 +167,9 @@ function getFuzzyTextSimilarToHeading(targetTitleText, isSearchingForServerTitle
     }
     else { //looking within the title of a tag to see if it is similar enough with 
         textCorpus = [searchSnippet.trim().toLowerCase()];
-        scoreThreshold 
     }
 
-    scoreThreshold = consts.INIDRECT_URL_DOMAINS.includes(utils.extractHostname(window.location.href)) ?
+    scoreThreshold = consts.INIDRECT_URL_DOMAINS.includes(utils.extractHostname(window.location.href, true)) ?
         consts.STRICTER_FUZZY_SCORE_THRESHOLD :
      (isSearchingForServerTitle ? consts.FINDING_TITLES_FUZZY_SCORE_THRESHOLD :
         consts.IDENTIFYING_TITLES_FUZZY_SCORE_THRESHOLD);
@@ -220,24 +222,25 @@ function findAndReplaceTitle(title, remove, withheld) {
             results = tmpResults.filter( el => {
 
                 // If there's no post associated with the title as a result of an error in the backend
-                if (title.Post === undefined ) 
+                console.log('injaaaaaa', !title.Post)
+                if (!title.Post ) 
                     return true;
                 /*
                 If the current page has the same URL as the associated post of the returned title, or if
                 the current page is among the special websites that have indirect URLs, then the result is accepted
                 */
-                if (utils.extractHostname(title.Post.url) == utils.extractHostname(window.location.href) ||
-                    consts.INIDRECT_URL_DOMAINS.includes(utils.extractHostname(window.location.href)))
+                if (utils.extractHostname(title.Post.url, true) == utils.extractHostname(window.location.href, true) ||
+                    consts.INIDRECT_URL_DOMAINS.includes(utils.extractHostname(window.location.href, true)))
                 return true;
 
                 /*
                 Otherwise, check the href attribute of the closest ancestor of the element
                 */
                 let elementLink = el.closest(["a"]).getAttribute('href');
-                let sanitizedUrl = utils.extractHostname(elementLink);
+                let sanitizedUrl = utils.extractHostname(elementLink, true);
                 // console.log(title.Post.url.split('//')[1], title.Post.url.split('//')[1].includes(sanitizedUrl))
                 
-                return (utils.extractHostname(title.Post.url).includes(sanitizedUrl));
+                return (utils.extractHostname(title.Post.url, true).includes(sanitizedUrl));
             })
                         
         }
@@ -344,7 +347,7 @@ function findAndReplaceTitle(title, remove, withheld) {
                 /*
                 if not on the actual article's page, e.g., on a homepage of a news website
                 */
-                if (utils.extractHostname(title.Post.url) != utils.extractHostname(window.location.href) && !customAttr) {
+                if (utils.extractHostname(title.Post.url, true) != utils.extractHostname(window.location.href, true) && !customAttr) {
 
                     clickTarget.addEventListener('click', function(ev) {
 
@@ -502,7 +505,7 @@ function openCustomTitlesDialog(ev) {
         titleEl = ev.target.closest('h1');
 
     //The economist h1's have a subtitle as well as a title node inside them (separated by a br node)
-    if (utils.extractHostname(window.location.href) == "www.economist.com" && titleEl.children.length == 3 )
+    if (utils.extractHostname(window.location.href).includes("www.economist.com") && titleEl.children.length == 3 )
         titleEl = document.querySelector('[data-test-id="Article Headline"]');
     
     store.dispatch('titles/setTitlesDialogVisibility', true);
@@ -626,7 +629,8 @@ function identifyPotentialTitles() {
         if og and twitter titles were not found on the page, look for h headings that have texts similar to the document's title +
         if on ESPN and the only found title is inside an <a> tag (which is on the feed)
         */
-        if (!elResults.length || (utils.extractHostname(window.location.href) == 'www.espn.com' && elResults.every((el => el.nodeName == 'A'))) ) {
+        if (!elResults.length || ( ['www.espn.com', 'www.thegatewaypundit.com'].includes(utils.extractHostname(window.location.href, true)) && 
+            elResults.every((el => el.nodeName == 'A'))) ) {
 
             let docTitle = document.querySelector('title').textContent;
             if (docTitle.length >= consts.MIN_TITLE_LENGTH) {
@@ -641,11 +645,12 @@ function identifyPotentialTitles() {
             }
 
             if (!elResults.length) {
-                if (utils.extractHostname(window.location.href) == 'www.deseret.com')
-                    elResults = document.querySelectorAll('.c-page-title');
+                if (utils.extractHostname(window.location.href).includes('www.deseret.com'))
+                    elResults = [...document.querySelectorAll('.c-page-title')];
             }
         
         }
+        
     }
 
     elResults = elResults.filter(elResult => elResult); //for removing null elements

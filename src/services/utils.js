@@ -206,8 +206,16 @@ function hashCode(s) {
     0);              
 }
 
-function extractHostname(url) {
-  let hostname;
+
+function extractFacebooklink(link) {
+  let sanitizedLink = link.substr(link.indexOf('l.php?u=') + 8); // remove before ?u=
+  sanitizedLink = sanitizedLink.substr(0, sanitizedLink.indexOf('&')); // remove after &
+
+  return decodeURIComponent(sanitizedLink);
+}
+
+function extractHostname(url, removeProtocol) {
+  let hostname = url;
   //find & remove protocol (http, ftp, etc.) and get hostname
 
   let keepQueryParam = false;
@@ -215,20 +223,38 @@ function extractHostname(url) {
     url.includes(el)))
     keepQueryParam = true;
 
-  if (url.indexOf("//") != -1 ) {
-    hostname = url.split('//')[1];    
+  if (url.includes('https://l.facebook.com/l.php?'))
+    hostname = extractFacebooklink(hostname);
+
+  if (url.includes('cnn.com/videos')) {
+    let index = url.indexOf('/video/playlists/');
+    if (index != -1 ) {
+      hostname = url.substring(0, index);
+    }
+  }
     
+  if (url.indexOf("//") != -1 ) {
     if (keepQueryParam)
       hostname = hostname.split('&')[0];
-    else
-      hostname = hostname.split('?')[0];
+    else {
+      let indexOfFirstParam = hostname.indexOf('?', hostname.indexOf("//") + 2);
+      if (indexOfFirstParam != -1)
+        hostname = hostname.substring(0, indexOfFirstParam);
+    }
   }
   else {
     console.log('what kind of url is it', url);
   }
 
+  if (removeProtocol)
+    hostname = hostname.split('//')[1];    
+
+  if (hostname[hostname.length - 1] == '/')
+    return hostname.substring(0, hostname.length - 1);
+
   return hostname;
 }
+
 
 export default {
   compareNames,

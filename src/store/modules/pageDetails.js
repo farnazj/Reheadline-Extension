@@ -141,7 +141,7 @@ export default {
 
     setBlackListStatus: function(context) {
       return new Promise((resolve, reject) => {
-        let pageHostname = utils.extractHostname(context.state.url);
+        let pageHostname = utils.extractHostname(context.state.url, true);
         let pageIsBlackListed = false;
 
         let allBlackLists = constants.GLOBAL_BLACKLISTED_DOMAINS;

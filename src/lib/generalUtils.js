@@ -6,7 +6,42 @@ function uncurlify(s) {
     return s
     .replace(/[\u2018\u2019]/g, "'")
     .replace(/[\u201C\u201D]/g, '"');
-  }
+}
+
+function curlify(s) {
+
+    let doubleQuoteCount = 0;
+    let singleQuoteCount = 0;
+
+    for (let i = 0; i < s.length; i++) {
+        if (s.charAt(i) == '"')
+            doubleQuoteCount += 1;
+        else if (s.charAt(i) == "'")
+            singleQuoteCount += 1;
+    }
+
+    let replacedStr = '';
+    for (let i = 0 ; i < s.length; i++) {
+        if (!["'", '"'].includes(s.charAt(i)))
+            replacedStr += s.charAt(i);
+        else {
+            if (s.charAt(i) == "'") { //replacing single quotes
+                if (i < singleQuoteCount/2)
+                    replacedStr += '\u2018';
+                else
+                    replacedStr += '\u2019';
+            }
+            else { //replacing double quotes
+                if (i < doubleQuoteCount/2)
+                    replacedStr += '\u201C';
+                else
+                    replacedStr += '\u201D';
+            }
+        }
+    }
+
+    return replacedStr;
+}
   
 function debounce(func, wait, immediate) {
     var timeout;
@@ -55,6 +90,7 @@ function isTextLight(rgbText) {
 
   export default {
       uncurlify,
+      curlify,
       debounce,
       throttle,
       isTextLight

@@ -19,6 +19,7 @@ const INIDRECT_URL_DOMAINS = [
 const THROWAWAY_BEG_TERMS = [
   'Analysis:',
   'Opinion |',
+  'Opinion:',
   'Perspective |' //for washington post,
 ]
 const THROWAWAY_END_TERMS = [

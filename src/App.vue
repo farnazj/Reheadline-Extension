@@ -27,6 +27,7 @@ export default {
         this.$router.push({ name: 'Login' });
       }
       else {
+        console.log('what is auth user in reheadline', authUser)
         this.fetchTitlesAndRelationships();
         this.$router.push({ name: 'Home' });
       }
@@ -45,7 +46,6 @@ export default {
         return Promise.resolve({ response: "identified page titles" });
       }
       if (request.type == 'cs_is_url_white_listed') {
-        console.log('got contacted')
         return Promise.resolve({ response: thisRef.isWhiteListed });
       }
     })

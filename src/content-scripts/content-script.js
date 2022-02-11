@@ -18,21 +18,21 @@ browser.runtime.sendMessage({
 })
 .then(authUser => {
 
-    console.log('auth user is', authUser)
-    if (authUser)
+    if (authUser) {
         localStorage.setItem('trustnetAuthToken', JSON.stringify(authUser));
+    }
 
     const container = document.createElement('div');
-    container.setAttribute('data-vuetify', '')
+    container.setAttribute('data-vuetify-reheadline', '')
     container.style.all = 'revert';
     const app = document.createElement('div');
-    app.setAttribute('id', 'vueApp');
+    app.setAttribute('id', 'reheadlineApp');
     container.appendChild(app);
     document.body.prepend(container);
     
     /* eslint-disable no-new */
     new Vue({
-        el: '#vueApp',
+        el: '#reheadlineApp',
         store,
         router,
         vuetify,

@@ -1,8 +1,8 @@
-[data-vuetify] .v-application--wrap {
+[data-vuetify-reheadline] .v-application--wrap {
     min-height: initial !important;
 }
 
-.custom-sidebar {
+[data-vuetify-reheadline] .custom-sidebar {
     position: fixed;
     width: 400px !important;
     height: 100vh;
@@ -57,17 +57,17 @@
     background-color: #AFB42B;
 }
 
-[data-vuetify] .v-badge__badge .v-icon {
+[data-vuetify-reheadline] .v-badge__badge .v-icon {
     font-size: 17px !important;
     inset: calc(100% - 14px) auto auto calc(100% - 14px) !important;
     color: #827717  !important;
 }
 
-[data-vuetify] .v-icon.v-icon {
+[data-vuetify-reheadline] .v-icon.v-icon {
     width: 15px !important;
 }
 
 
-[data-vuetify] .v-dialog__content {
+[data-vuetify-reheadline] .v-dialog__content {
     z-index: 9999 !important;
 }

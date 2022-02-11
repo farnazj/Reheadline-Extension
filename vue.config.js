@@ -51,7 +51,7 @@ module.exports = {
         options.sourceMap = process.env.NODE_ENV !== 'production';
         options.plugins = [
             prefixer({
-                prefix: '[data-vuetify]',
+                prefix: '[data-vuetify-reheadline]',
                 transform(prefix, selector, prefixedSelector) {
                     let result = prefixedSelector;
                     if (selector.startsWith('html') || selector.startsWith('body')) {

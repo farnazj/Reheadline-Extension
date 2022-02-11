@@ -43,6 +43,7 @@ export default {
     update_user(state, user) {
       localStorage.setItem('trustnetAuthToken', JSON.stringify(user));
       state.token = Object.assign({}, user);
+      console.log('token chi shod', state.token)
     }
   },
   actions: {
@@ -54,7 +55,7 @@ export default {
             type: 'get_user'
         })
         .then(authUser => {
-            console.log('got auth user:', authUser);
+            console.log('got auth user in reheadline:', authUser);
             if (authUser) {
                 context.commit('update_user', authUser);
             }
@@ -76,6 +77,7 @@ export default {
               }
           })
           .then(resp => {
+            console.log('in reheadline login', resp)
               const user = resp.data.user;
               context.commit('auth_success');
               context.dispatch('getUser')

@@ -71,7 +71,7 @@ export default {
 </script>
 
 <style>
-[data-vuetify] .v-application--wrap {
+.v-application--wrap {
   width: 400px;
   /* height: 400px; */
   min-height: fit-content;
