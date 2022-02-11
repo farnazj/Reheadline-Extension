@@ -347,7 +347,9 @@ function findAndReplaceTitle(title, remove, withheld) {
                 /*
                 if not on the actual article's page, e.g., on a homepage of a news website
                 */
-                if (utils.extractHostname(title.Post.url, true) != utils.extractHostname(window.location.href, true) && !customAttr) {
+                if ( (!title.Post ||
+                    utils.extractHostname(title.Post.url, true) != utils.extractHostname(window.location.href, true)
+                    ) && !customAttr) {
 
                     clickTarget.addEventListener('click', function(ev) {
 

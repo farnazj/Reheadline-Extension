@@ -20,7 +20,8 @@ const THROWAWAY_BEG_TERMS = [
   'Analysis:',
   'Opinion |',
   'Opinion:',
-  'Perspective |' //for washington post,
+  'Perspective |', //for washington post,
+  'Perspective:'
 ]
 const THROWAWAY_END_TERMS = [
   ' - The New York Times',
