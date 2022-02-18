@@ -7,11 +7,11 @@ import utils from '@/services/utils'
 
 function getElementsContainingText(text) {
 
-    console.log('text to look for is ',text)
+    console.log('Trying to find an element with the exact text: ',text)
 
     let xpath, query;
     let uncurlifiedText = generalUtils.uncurlify(text).toLowerCase();
-    // let curlifiedText = generalUtils.curlify(text).toLowerCase();
+    let curlifiedText = generalUtils.curlify(text).toLowerCase();
 
     let results = [];
 
@@ -19,13 +19,17 @@ function getElementsContainingText(text) {
 
     try {
         xpath = `//*[(ancestor-or-self::h1 or ancestor-or-self::h2 or ancestor-or-self::h3 or 
-        ancestor-or-self::h4 or ancestor-or-self::h5 or ancestor-or-self::h6 or ancestor-or-self::a ${xpathExtension})
+        ancestor-or-self::h4 or ancestor-or-self::h5 or ancestor-or-self::h6 or ancestor-or-self::a
+        or ancestor-or-self::del ${xpathExtension})
          and ( contains(translate(text(),"ABCDEFGHIJKLMNOPQRSTUVWXYZ",
          "abcdefghijklmnopqrstuvwxyz"), 
          "${text}") or 
          contains(translate(text(),"ABCDEFGHIJKLMNOPQRSTUVWXYZ",
          "abcdefghijklmnopqrstuvwxyz"), 
-         "${uncurlifiedText}")
+         "${uncurlifiedText}") or
+         contains(translate(text(),"ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+         "abcdefghijklmnopqrstuvwxyz"), 
+         "${curlifiedText}") 
          )]`;
 
         query = document.evaluate(xpath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);    
@@ -34,12 +38,16 @@ function getElementsContainingText(text) {
         console.log('error in xpath because the matching text has double quotes in it', error)
         // if (error.name == 'DOMException') {
             xpath = `//*[(ancestor-or-self::h1 or ancestor-or-self::h2 or ancestor-or-self::h3 or 
-            ancestor-or-self::h4 or ancestor-or-self::h5 or ancestor-or-self::h6 or ancestor-or-self::a ${xpathExtension})
+            ancestor-or-self::h4 or ancestor-or-self::h5 or ancestor-or-self::h6 or ancestor-or-self::a 
+            or ancestor-or-self::del ${xpathExtension})
             and ( contains(translate(text(),"ABCDEFGHIJKLMNOPQRSTUVWXYZ",
             "abcdefghijklmnopqrstuvwxyz"), 
             '${text}') or contains(translate(text(),"ABCDEFGHIJKLMNOPQRSTUVWXYZ",
             "abcdefghijklmnopqrstuvwxyz"), 
-            '${uncurlifiedText}') 
+            '${uncurlifiedText}') or
+            contains(translate(text(),"ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+            "abcdefghijklmnopqrstuvwxyz"), 
+            '${curlifiedText}')
             )]`;
 
             query = document.evaluate(xpath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);  
@@ -49,10 +57,11 @@ function getElementsContainingText(text) {
     for (let i = 0, length = query.snapshotLength; i < length; ++i) {
         results.push(query.snapshotItem(i));
     }
-    console.log('tahesh chi shod', results)
+    console.log('results of finding an element with the exact text:', results)
 
     return results;
 }
+
 
 function addAltTitleNodeToHeadline(altTitle) {
     const newEl = document.createElement('em');
@@ -150,7 +159,9 @@ of a title tag in the document
 */
 function getFuzzyTextSimilarToHeading(targetTitleText, isSearchingForServerTitle, searchSnippet) {
 
-    console.log('inside fuzzy search', targetTitleText, searchSnippet ? searchSnippet.trim(): '')
+    console.log(`inside fuzzy search, the text to look for is: ${targetTitleText}; is it searching for
+    a title returned from the server? ${isSearchingForServerTitle}`)
+    console.log('search snippet is ', searchSnippet ? searchSnippet.trim(): '')
 
     /*
     By default this function searches the whole content of the document. To not look for the text
@@ -160,6 +171,7 @@ function getFuzzyTextSimilarToHeading(targetTitleText, isSearchingForServerTitle
     affected by CSS styling (e.g., upper/lower case). Therefore, here, we convert the search term as well as
     the array containing leaf nodes' contents to lowercase
     */
+
     let textCorpus, scoreThreshold;
     if (!searchSnippet) { //looking within the entire body of the document to find a server returned title
         textCorpus = document.body.innerText.split('\n').filter(x => x.length <= consts.MAX_TITLE_LENGTH).map(el =>
@@ -198,53 +210,71 @@ function getFuzzyTextSimilarToHeading(targetTitleText, isSearchingForServerTitle
     return (finalResults[0] && finalResults[0].score <= scoreThreshold) ? finalResults[0].item : null;
 }
 
-function findAndReplaceTitle(title, remove, withheld) {
+function findAndReplaceTitle(title, remove, withheld, modifyMode) {
 
-    let results = getElementsContainingText(title.text);
-    results = results.filter(el => !(['SCRIPT', 'TITLE'].includes(el.nodeName)));
+    console.log('inside findAndReplaceTitle, title to find:', title);
+    console.log('is the title going to be removed', remove);
 
-    console.log('results of looking for elements containing the exact text returned from the server:', results)
+    let results;
+
     /*
-    If exact text was not found, look for text that is *similar enough*
+    modifyMode is true when an alt title already exists on the page and it may need to change,
+    e.g., when the user has submitted a new set of custom titles or edited an already existing set
     */
-
-    if (!results.length) {
-        let similarText = getFuzzyTextSimilarToHeading(title.text, true);
-
-        console.log('similar text found', similarText)
-
-        if (similarText) {
-            let tmpResults = getElementsContainingText(similarText);
-            /*
-            Take the elements whose href attribute match the URL of the post that is returned
-            from the server in order to minimize false positives because of fuzzy matching
-            */      
-            results = tmpResults.filter( el => {
-
-                // If there's no post associated with the title as a result of an error in the backend
-                console.log('injaaaaaa', !title.Post)
-                if (!title.Post ) 
+    if (modifyMode) {        
+        let modifiedHeadlines = [...document.querySelectorAll('del.headline-modified')];
+        results = modifiedHeadlines.filter(modifiedHeadline => {
+            let similarText = getFuzzyTextSimilarToHeading(title.text, false, modifiedHeadline.textContent);
+            return similarText != null; 
+        })
+        console.log('in edit mode, what results did we get:', results)
+    }
+    else {
+        results = getElementsContainingText(title.text);
+        results = results.filter(el => !(['SCRIPT', 'TITLE'].includes(el.nodeName)));
+    
+        console.log('results of looking for elements containing the exact text returned from the server:', results)
+        /*
+        If exact text was not found, look for text that is *similar enough*
+        */
+    
+        if (!results.length) {
+            let similarText = getFuzzyTextSimilarToHeading(title.text, true);
+    
+            console.log('similar text found', similarText)
+    
+            if (similarText) {
+                let tmpResults = getElementsContainingText(similarText);
+                /*
+                Take the elements whose href attribute match the URL of the post that is returned
+                from the server in order to minimize false positives because of fuzzy matching
+                */      
+                results = tmpResults.filter( el => {
+    
+                    // If there's no post associated with the title as a result of an error in the backend
+                    if (!title.Post ) 
+                        return true;
+                    /*
+                    If the current page has the same URL as the associated post of the returned title, or if
+                    the current page is among the special websites that have indirect URLs, then the result is accepted
+                    */
+                    if (utils.extractHostname(title.Post.url, true) == utils.extractHostname(window.location.href, true) ||
+                        consts.INIDRECT_URL_DOMAINS.includes(utils.extractHostname(window.location.href, true)))
                     return true;
-                /*
-                If the current page has the same URL as the associated post of the returned title, or if
-                the current page is among the special websites that have indirect URLs, then the result is accepted
-                */
-                if (utils.extractHostname(title.Post.url, true) == utils.extractHostname(window.location.href, true) ||
-                    consts.INIDRECT_URL_DOMAINS.includes(utils.extractHostname(window.location.href, true)))
-                return true;
-
-                /*
-                Otherwise, check the href attribute of the closest ancestor of the element
-                */
-                let elementLink = el.closest(["a"]).getAttribute('href');
-                let sanitizedUrl = utils.extractHostname(elementLink, true);
-                // console.log(title.Post.url.split('//')[1], title.Post.url.split('//')[1].includes(sanitizedUrl))
-                
-                return (utils.extractHostname(title.Post.url, true).includes(sanitizedUrl));
-            })
-                        
+    
+                    /*
+                    Otherwise, check the href attribute of the closest ancestor of the element
+                    */
+                    let elementLink = el.closest(["a"]).getAttribute('href');
+                    let sanitizedUrl = utils.extractHostname(elementLink, true);
+                    
+                    return (utils.extractHostname(title.Post.url, true).includes(sanitizedUrl));
+                })
+                            
+            }
+               
         }
-           
+
     }
 
     let nonScriptResultsCount = 0;
@@ -530,7 +560,7 @@ function removeEventListenerFromTitle(headlineId) {
 
 function identifyPotentialTitles() {
 
-    console.log('trying to identify titles')
+    console.log('trying to identify titles on the page')
     let elResults = [];
 
     if (utils.extractHostname(window.location.href).includes('feedly.com')) {

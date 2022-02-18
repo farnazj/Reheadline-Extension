@@ -61,7 +61,9 @@ export default {
     },
     
     set_displayed_title: (state, payload) => {
+        console.log('mage nashod inja', state.displayedTitle)
         state.displayedTitle = Object.assign({}, payload);
+        console.log('mage nashod inja--badesh', state.displayedTitle)
     },
 
     set_endorsers_visibility: (state, payload) => {
@@ -212,6 +214,7 @@ export default {
                   resTitles: candidateTitle.StandaloneCustomTitles
                 })
                 .then(customTitleObjects => {
+                    console.log('what is customtitleobjects', customTitleObjects)
                     standaloneTitlesArr[index].sortedCustomTitles = customTitleObjects.slice().sort(utils.compareTitles);
                     standaloneTitlesArr[index].sortedCustomTitles.forEach( (customTitle, customTitleIndex) => {
                         standaloneTitlesArr[index].sortedCustomTitles[customTitleIndex].sortedEndorsers = customTitle.lastVersion.Endorsers.slice().sort(utils.compareSources);
@@ -243,9 +246,10 @@ export default {
 
                 let withHeldVal = context.state.titlesStatuses[candidateTitle.id].isWithheld;
                 console.log('withheldVal', withHeldVal)
-                console.log('candidate titles', candidateTitles)
                 
-                let replacementCount = domHelpers.findAndReplaceTitle(candidateTitle, false , withHeldVal);
+                let replacementCount = domHelpers.findAndReplaceTitle(candidateTitle, false , withHeldVal, payload.modifyMode);
+                console.log('how many titles were found on the page', replacementCount)
+
                 if (replacementCount) {
                     titlesFoundOnPage.push(candidateTitle);
 
@@ -295,6 +299,7 @@ export default {
           .then( allHashes => {
               context.dispatch('getTitleMatches', { titlehashes: allHashes })
                 .then(candidateTitles => {
+                    console.log('avale aval', candidateTitles)
                     context.dispatch('sortCustomTitles', candidateTitles)
                     .then(standaloneTitlesArr => {
                         // console.log('candidate titles are ', standaloneTitlesArr)
@@ -326,9 +331,13 @@ export default {
                 context.dispatch('sortCustomTitles', [candidateTitle])
                 .then(standaloneTitlesArr => {
 
+                    console.log('bbaaaaaad', standaloneTitlesArr)
+
                     if (standaloneTitlesArr.length && standaloneTitlesArr[0].sortedCustomTitles.length) {
+                        console.log('mire ke peida kone')
                         context.dispatch('findTitlesOnPage', { 
-                            candidateTitlesWSortedCustomTitles: standaloneTitlesArr
+                            candidateTitlesWSortedCustomTitles: standaloneTitlesArr,
+                            modifyMode: true
                         })
                         .then(res => {
                             resolve()
@@ -359,8 +368,7 @@ export default {
     removeTitleFromPage: (context, payload) => {
         return new Promise((resolve, reject) => {
       
-            let replacementCount = domHelpers.findAndReplaceTitle(payload.title, true);
-            console.log('going to remove from store titles', payload.title)           
+            let replacementCount = domHelpers.findAndReplaceTitle(payload.title, true);  
             context.commit('remove_from_titles', payload.title)
             resolve();
         })
@@ -386,7 +394,8 @@ export default {
                 context.dispatch('sortCustomTitles', candidateTitles)
                 .then(standaloneTitlesArr => {
                     context.dispatch('findTitlesOnPage', { 
-                    candidateTitlesWSortedCustomTitles: standaloneTitlesArr
+                    candidateTitlesWSortedCustomTitles: standaloneTitlesArr,
+                    modifyMode: payload.modifyMode
                     })
                     .then(res => {
                         resolve()
@@ -414,7 +423,7 @@ export default {
         context.commit('set_endorsers_visibility', payload);
     },
 
-    setEndorsersTitleIds: (context, payload) => {
+    setEndorsersTitleId: (context, payload) => {
         context.commit('set_endorsers_title_id', payload);
     },
 

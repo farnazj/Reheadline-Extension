@@ -302,12 +302,16 @@ export default {
             if (this.$refs.newTitleForm.validate()) {
                 this.postBtnDisabled = true;
 
-                console.log('displayed title:', this.displayedTitle.titleText);
-
-                let pageIndentifiedTitle = this.displayedTitle.titleId && this.associatedStandaloneTitle ? 
+                let pageIdentifiedTitle = this.displayedTitle.titleId && this.associatedStandaloneTitle ? 
                     this.associatedStandaloneTitle.text : this.displayedTitle.titleText;
 
                 let thisRef = this;
+                let pageIdentifiedTitles = [pageIdentifiedTitle];
+                if (utils.extractHostname(window.location.href).includes('www.deseret.com') ) {
+                    let homepageTitle = document.querySelector('title').textContent;
+                    if (homepageTitle != pageIdentifiedTitle)
+                        pageIdentifiedTitles.push(homepageTitle);
+                }
                 
                 browser.runtime.sendMessage({
                     type: 'post_new_title',
@@ -316,41 +320,27 @@ export default {
                             postId: this.associatedStandaloneTitle ? this.associatedStandaloneTitle.PostId : null,
                             postUrl: this.url,
                             customTitleText: this.newTitle,
-                            pageIndentifiedTitle: pageIndentifiedTitle
+                            pageIdentifiedTitles: pageIdentifiedTitles
                         }
                     }
                 })
                 .then(res => {
 
-                    console.log('post id chie', this.associatedStandaloneTitle ? this.associatedStandaloneTitle.PostId : null)
-
-                    if (utils.extractHostname(window.location.href).includes('www.deseret.com') ) {
-                        let homepageTitle = document.querySelector('title').textContent;
-                        console.log('tu deseret', homepageTitle)
-                        browser.runtime.sendMessage({
-                            type: 'post_new_title',
-                            data: {
-                                reqBody: {
-                                    postId: this.associatedStandaloneTitle ? this.associatedStandaloneTitle.PostId : null,
-                                    postUrl: this.url,
-                                    customTitleText: this.newTitle,
-                                    pageIndentifiedTitle: homepageTitle
-                                }
-                            }
-                        })
-                    }
-
-                    console.log('got post new title response back:', res);
                     thisRef.newTitle = '';
                     thisRef.$refs.newTitleForm.resetValidation();
+
+                    let returnedStandalonetitle = res.data.data.filter(el => el.text == pageIdentifiedTitle)[0];
+
                     thisRef.addTitleToPage({
-                        hash: res.data.data.hash,
-                        titleElementId: thisRef.displayedTitle.titleElementId
+                        hash: returnedStandalonetitle.hash,
+                        titleElementId: thisRef.displayedTitle.titleElementId,
+                        modifyMode: this.associatedStandaloneTitle ? true : false
                     })
                     .then(() => {
+                        
                         thisRef.setDisplayedTitle({ 
-                            titleId: res.data.data.id,
-                            titleText: res.data.data.text
+                            titleId: returnedStandalonetitle.id,
+                            titleText: returnedStandalonetitle.text
                         });
 
                         browser.runtime.sendMessage({
@@ -359,7 +349,7 @@ export default {
                                     type: 'post_headline', 
                                     data: { 
                                         url: window.location.href,
-                                        titleId: res.data.data.id,
+                                        titleId: returnedStandalonetitle.id,
                                         timeSpentOnPage: Date.now() - this.timeOpened
                                     }
                             }
@@ -399,7 +389,7 @@ export default {
                         customTitleSetId: titleObj.lastVersion.setId
                     })
                 }
-                //if use unendorsed the title
+                //if user unendorsed the title
                 else {
                     this.removeUserAsCustomTitleEndorser({
                         standaloneTitleId: this.associatedStandaloneTitle.id ,
@@ -432,7 +422,6 @@ export default {
                 type: 'delete_title',
                 data: {
                     reqBody: {
-                        standaloneTitleId: this.associatedStandaloneTitle.id,
                         setId: this.delete.selectedTitle.lastVersion.setId
                     }
                 }
@@ -467,7 +456,6 @@ export default {
                     type: 'edit_title',
                     data: {
                         reqParams: {
-                            standaloneTitleId: this.associatedStandaloneTitle.id,
                             setId: this.edit.setId
                         },
                         reqBody: {
@@ -512,8 +500,8 @@ export default {
         showEndorsers: function(titleObj) {
 
             this.setHistoryVisibility(false);
-            this.setEndorsersTitleIds({
-                selectedStandaloneTitleId: titleObj.lastVersion.StandaloneTitleId,
+            this.setEndorsersTitleId({
+                selectedStandaloneTitleId: titleObj.lastVersion.OriginalCustomTitles.StandaloneTitleId,
                 selectedCustomTitleSetId: titleObj.lastVersion.setId
             })
             
@@ -532,7 +520,7 @@ export default {
             'modifyCustomTitleInPage',
             'setDisplayedTitle',
             'setEndorsersVisibility',
-            'setEndorsersTitleIds',
+            'setEndorsersTitleId',
             'setHistoryVisibility',
             'populateTitleHistory',
             'addUserAsCustomTitleEndorser',
