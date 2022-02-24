@@ -1,6 +1,6 @@
 {
   "name": "reheadline",
-  "version": "0.1.11",
+  "version": "0.1.13",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service build --mode development --watch",
@@ -9,9 +9,9 @@
   },
   "dependencies": {
     "@mdi/js": "^5.9.55",
-    "axios": "^0.21.1",
+    "axios": "^0.26.0",
     "core-js": "^3.6.5",
-    "fuse.js": "^6.4.6",
+    "fuse.js": "^6.5.3",
     "moment": "^2.29.1",
     "postcss": "^8.2.8",
     "postcss-prefix-selector": "^1.9.0",

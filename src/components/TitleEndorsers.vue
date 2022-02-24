@@ -21,7 +21,7 @@
         <v-card-text class="pa-1">
           <template v-for="endorser in endorserUsers">
           <v-row  :key="`row-${endorser.id}`" no-gutters justify="start" align="center" class="pa-1">
-            <custom-avatar :user="endorser" :clickEnabled="false" :size="25"  class="mr-2">
+            <custom-avatar :user="endorser" :clickEnabled="true" :size="25"  class="mr-2">
             </custom-avatar>
              <span class="grey--text text--darken-2">{{sourceDisplayName(endorser)}}</span>
           </v-row>

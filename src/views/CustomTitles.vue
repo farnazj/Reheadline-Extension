@@ -108,7 +108,7 @@
                                                 <v-col cols="5">
                                                     <v-row no-gutters v-if="titleObj.sortedEndorsers.length" @click.stop="showEndorsers(titleObj)" class="interactable">
                                                         <template v-for="(endorser, endorserIndex) in titleObj.sortedEndorsers.slice(0, endorsersOnCard)">
-                                                            <custom-avatar :user="endorser" :size="25" :clickEnabled="true" :key="`endorser-${endorserIndex}`"
+                                                            <custom-avatar :user="endorser" :size="25" :clickEnabled="false" :key="`endorser-${endorserIndex}`"
                                                             class="mr-2"></custom-avatar>
                                                         </template>
                                                         <span v-if="titleObj.sortedEndorsers.length > endorsersOnCard" 
@@ -255,7 +255,6 @@ export default {
         associatedStandaloneTitle: function() {
 
             if (this.displayedTitle.titleId ) {
-                // console.log('standalone title is ', this.titles.find(title => title.id == this.displayedTitle.titleId))
                 return this.titles.find(title => title.id == this.displayedTitle.titleId);
             }
             else

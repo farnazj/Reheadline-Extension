@@ -72,7 +72,7 @@ browser.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     return new Promise((resolve, reject) => {
       relationServices.unfollow(request.data.reqBody)
       .then(response => {
-        studyServices.logUserInteraction({ type: 'unfollow', data: request.data.id, client: 'extension' });
+        studyServices.logUserInteraction({ type: 'unfollow', data: request.data.id, client: 'reheadline-extension' });
         resolve(response.data);
       })
     })
@@ -259,7 +259,7 @@ browser.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   }
   else if (request.type == 'log_interaction') {
     return new Promise((resolve, reject) => {
-      studyServices.logUserInteraction({...request.interaction, client: 'extension'})
+      studyServices.logUserInteraction({...request.interaction, client: 'reheadline-extension'})
       .then(res => {
         resolve(res);
       })

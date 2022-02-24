@@ -63,7 +63,9 @@ function getElementsContainingText(text) {
 }
 
 
-function addAltTitleNodeToHeadline(altTitle) {
+function addAltTitleNodeToHeadline(args) {
+    let altTitle = args.altTitle, originalTitle = args.originalTitle;
+
     const newEl = document.createElement('em');
     newEl.classList.add('new-alt-headline', `title-${altTitle.id}`);
     newEl.addEventListener('click', function(ev) {
@@ -77,6 +79,17 @@ function addAltTitleNodeToHeadline(altTitle) {
 
         store.dispatch('titles/setTitlesDialogVisibility', true);
 
+        let uniqueCustomTitlesSeen = [];
+        let uniqueCustomTitles = [];
+    
+        let allCustomTitles = altTitle.StandaloneCustomTitles.flat();
+        for (let customTitle of allCustomTitles) {
+            if (!(customTitle.id in uniqueCustomTitlesSeen)) {
+                uniqueCustomTitlesSeen.push(customTitle.id);
+                uniqueCustomTitles.push(customTitle);
+            } 
+        }
+
         browser.runtime.sendMessage({
             type: 'log_interaction',
             interaction: {
@@ -85,8 +98,10 @@ function addAltTitleNodeToHeadline(altTitle) {
                     url: window.location.href,
                     standaloneTitleId: altTitle.id,
                     standaloneTitleText: altTitle.text,
+                    originalTitleText: originalTitle,
                     postId: altTitle.PostId,
-                    displayedCustomTitle: altTitle.sortedCustomTitles[0]['lastVersion'].text
+                    displayedCustomTitle: altTitle.sortedCustomTitles[0]['lastVersion'].text,
+                    availableCustomTitleIds: uniqueCustomTitles.map(el => el.id)
                 }
             }
         })
@@ -321,7 +336,7 @@ function findAndReplaceTitle(title, remove, withheld, modifyMode) {
                     if (!utils.extractHostname(window.location.href).includes('youtube.com')) {
                         el.textContent = "";
 
-                        newFirstChild = addAltTitleNodeToHeadline(title);
+                        newFirstChild = addAltTitleNodeToHeadline({ altTitle: title, originalTitle: originalTitle });
         
                         newSecondChild = document.createElement('del');
                         newSecondChild.classList.add('headline-modified');
@@ -342,7 +357,7 @@ function findAndReplaceTitle(title, remove, withheld, modifyMode) {
                             childEl.style.display = "none";
                         });
 
-                        newFirstChild = addAltTitleNodeToHeadline(title);
+                        newFirstChild = addAltTitleNodeToHeadline({ altTitle: title, originalTitle: originalTitle });
                         newSecondChild = document.createElement('del');
                         newSecondChild.classList.add('headline-modified');
                         newSecondChild.appendChild(document.createTextNode(originalTitle));
@@ -438,7 +453,7 @@ function findAndReplaceTitle(title, remove, withheld, modifyMode) {
 
                     }
                     else {
-                        let newAltContainerEl = addAltTitleNodeToHeadline(title);
+                        let newAltContainerEl = addAltTitleNodeToHeadline({ altTitle: title, originalTitle: originalTitle });
                         headlineContainer.insertBefore(newAltContainerEl, originalTextHolderEl);
                     }
                     

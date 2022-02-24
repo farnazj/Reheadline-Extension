@@ -61,9 +61,7 @@ export default {
     },
     
     set_displayed_title: (state, payload) => {
-        console.log('mage nashod inja', state.displayedTitle)
         state.displayedTitle = Object.assign({}, payload);
-        console.log('mage nashod inja--badesh', state.displayedTitle)
     },
 
     set_endorsers_visibility: (state, payload) => {
@@ -214,7 +212,6 @@ export default {
                   resTitles: candidateTitle.StandaloneCustomTitles
                 })
                 .then(customTitleObjects => {
-                    console.log('what is customtitleobjects', customTitleObjects)
                     standaloneTitlesArr[index].sortedCustomTitles = customTitleObjects.slice().sort(utils.compareTitles);
                     standaloneTitlesArr[index].sortedCustomTitles.forEach( (customTitle, customTitleIndex) => {
                         standaloneTitlesArr[index].sortedCustomTitles[customTitleIndex].sortedEndorsers = customTitle.lastVersion.Endorsers.slice().sort(utils.compareSources);
@@ -274,7 +271,6 @@ export default {
                 }
             })
     
-            console.log('Server returned titles found on page:', titlesFoundOnPage);
             Promise.all(allProms)
             .then(() => {
                 context.commit('populate_titles', titlesFoundOnPage);
@@ -299,10 +295,8 @@ export default {
           .then( allHashes => {
               context.dispatch('getTitleMatches', { titlehashes: allHashes })
                 .then(candidateTitles => {
-                    console.log('avale aval', candidateTitles)
                     context.dispatch('sortCustomTitles', candidateTitles)
                     .then(standaloneTitlesArr => {
-                        // console.log('candidate titles are ', standaloneTitlesArr)
                         context.dispatch('findTitlesOnPage', { candidateTitlesWSortedCustomTitles: standaloneTitlesArr })
                         .then(res => {
                             context.dispatch('pageObserver/reconnectObserver', {}, {root: true});
@@ -331,10 +325,7 @@ export default {
                 context.dispatch('sortCustomTitles', [candidateTitle])
                 .then(standaloneTitlesArr => {
 
-                    console.log('bbaaaaaad', standaloneTitlesArr)
-
                     if (standaloneTitlesArr.length && standaloneTitlesArr[0].sortedCustomTitles.length) {
-                        console.log('mire ke peida kone')
                         context.dispatch('findTitlesOnPage', { 
                             candidateTitlesWSortedCustomTitles: standaloneTitlesArr,
                             modifyMode: true
