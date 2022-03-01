@@ -81,17 +81,23 @@ export default {
     },
     blackListedWebsites: {
         get: function() {
-            if ('blackListedWebsites' in this.userPreferences)
-                return this.userPreferences.blackListedWebsites;
-            else
-                return [];
+          if ('reheadlineBlackListedWebsites' in this.userPreferences)
+              return this.userPreferences.reheadlineBlackListedWebsites;
+          else
+              return [];
         },
         set: function(newVals) {
-            let sanitizedVals = newVals.map(domain => {
-                return utils.extractHostname(domain, true);
-            })
-            console.log('sanitized blacklisted websites:', sanitizedVals);
-            this.setUserPreferences({ blackListedWebsites: sanitizedVals });
+          let sanitizedVals = newVals.map(domain => {
+            let sanitizedURL = domain;
+
+            let protocolIndex = sanitizedURL.indexOf("//");
+            if (protocolIndex != -1)
+              sanitizedURL = sanitizedURL.split('//')[1];
+            
+            return sanitizedURL.split('?')[0];
+          })
+          console.log('sanitized blacklisted websites:', sanitizedVals);
+          this.setUserPreferences({ reheadlineBlackListedWebsites: sanitizedVals });
         }
     },
     siteName: function() {
@@ -106,11 +112,11 @@ export default {
   },
   methods: {
     removeWebsite: function(item) {
-        const index = this.blackListedWebsites.indexOf(item);
-        if (index > -1) {
-            this.blackListedWebsites.splice(index, 1);
-            this.setUserPreferences({ blackListedWebsites: this.blackListedWebsites });
-        }
+      const index = this.blackListedWebsites.indexOf(item);
+      if (index > -1) {
+          this.blackListedWebsites.splice(index, 1);
+          this.setUserPreferences({ reheadlineBlackListedWebsites: this.blackListedWebsites });
+      }
     },
     ...mapActions('preferences', [
       'getUserPreferences',
