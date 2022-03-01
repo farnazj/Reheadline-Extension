@@ -13,7 +13,8 @@ const IDENTIFYING_TITLES_FUZZY_SCORE_THRESHOLD=0.54;
 const STRICTER_FUZZY_SCORE_THRESHOLD=0.65;
 
 const INIDRECT_URL_DOMAINS = [
-  'www.reddit.com'
+  'www.reddit.com',
+  'https://news.ycombinator.com'
 ]
 
 const THROWAWAY_BEG_TERMS = [
@@ -23,6 +24,7 @@ const THROWAWAY_BEG_TERMS = [
   'Perspective |', //for washington post,
   'Perspective:'
 ]
+
 const THROWAWAY_END_TERMS = [
   ' - The New York Times',
   '| Vanity Fair Read More',
@@ -49,6 +51,17 @@ const GLOBAL_BLACKLISTED_DOMAINS = [
 ]
 
 
+/*
+Domains where a resource is identified using a query parameter
+*/
+const DOMAINS_WITH_QUERY_PARAMS = [
+  'facebook.com/photo/?fbid',
+  'facebook.com/watch',
+  'youtube.com/watch',
+  'news.ycombinator.com/item'
+]
+
+
 export default {
   BASE_URL,
   CLIENT_URL,
@@ -62,5 +75,6 @@ export default {
   INIDRECT_URL_DOMAINS,
   THROWAWAY_BEG_TERMS,
   THROWAWAY_END_TERMS,
-  GLOBAL_BLACKLISTED_DOMAINS
+  GLOBAL_BLACKLISTED_DOMAINS,
+  DOMAINS_WITH_QUERY_PARAMS
 }

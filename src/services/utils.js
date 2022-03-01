@@ -1,4 +1,5 @@
 import store from '@/store'
+import constants from '@/lib/constants'
 
 //function to sort sources by full name or username (for news publishing entities)
 function compareNames(a, b) {
@@ -219,7 +220,7 @@ function extractHostname(url, removeProtocol) {
   //find & remove protocol (http, ftp, etc.) and get hostname
 
   let keepQueryParam = false;
-  if (['facebook.com/photo/?fbid', 'facebook.com/watch', 'youtube.com/watch'].some(el => 
+  if (constants.DOMAINS_WITH_QUERY_PARAMS.some(el => 
     url.includes(el)))
     keepQueryParam = true;
 
