@@ -147,7 +147,7 @@ export default {
         let allBlackLists = constants.GLOBAL_BLACKLISTED_DOMAINS;
         let userPreferences = context.rootState['preferences'].userPreferences;
         console.log('user preferences', userPreferences);
-        if ('blackListedWebsites' in userPreferences) {
+        if ('reheadlineBlackListedWebsites' in userPreferences) {
           allBlackLists = allBlackLists.concat(userPreferences.reheadlineBlackListedWebsites);
         }
 
