@@ -148,7 +148,7 @@ export default {
         let userPreferences = context.rootState['preferences'].userPreferences;
         console.log('user preferences', userPreferences);
         if ('blackListedWebsites' in userPreferences) {
-          allBlackLists = allBlackLists.concat(userPreferences.blackListedWebsites);
+          allBlackLists = allBlackLists.concat(userPreferences.reheadlineBlackListedWebsites);
         }
 
         pageIsBlackListed = allBlackLists.some(blacklistedWebsite => 
