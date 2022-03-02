@@ -7,7 +7,8 @@ export default {
   state: {
     url: null,
     isWhiteListed: false, //globally
-    isBlacklisted: false, //customized per user,
+    isBlacklisted: false, //customized per user
+    hasPotentialTitles: true,
     timeOpened: null
   },
   getters: {
@@ -28,6 +29,9 @@ export default {
     set_time_opened: (state) => {
       state.timeOpened = Date.now();
       console.log('time opened', state.timeOpened)
+    },
+    set_potential_titles_status: (state, status) => {
+      state.hasPotentialTitles = status;
     }
   },
   actions: {
@@ -156,6 +160,12 @@ export default {
         )
         context.commit('set_black_list_status', pageIsBlackListed);
         console.info('is page blacklisted:', pageIsBlackListed);
+
+        let hasNoEdittableTitle = constants.DOMAINS_WO_TITLES.some(domain => 
+          pageHostname.includes(domain)
+        )
+        
+        context.commit('set_potential_titles_status', !hasNoEdittableTitle);
 
         resolve();
       })

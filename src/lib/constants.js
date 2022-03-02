@@ -14,7 +14,7 @@ const STRICTER_FUZZY_SCORE_THRESHOLD=0.65;
 
 const INIDRECT_URL_DOMAINS = [
   'www.reddit.com',
-  'https://news.ycombinator.com'
+  'news.ycombinator.com'
 ]
 
 const THROWAWAY_BEG_TERMS = [
@@ -61,6 +61,13 @@ const DOMAINS_WITH_QUERY_PARAMS = [
   'news.ycombinator.com/item'
 ]
 
+/*
+Domains without titles of their own to be made edittable
+*/
+const DOMAINS_WO_TITLES = [
+  'twitter.com',
+  'facebook.com'
+]
 
 export default {
   BASE_URL,
@@ -76,5 +83,6 @@ export default {
   THROWAWAY_BEG_TERMS,
   THROWAWAY_END_TERMS,
   GLOBAL_BLACKLISTED_DOMAINS,
-  DOMAINS_WITH_QUERY_PARAMS
+  DOMAINS_WITH_QUERY_PARAMS,
+  DOMAINS_WO_TITLES
 }

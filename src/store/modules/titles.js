@@ -276,7 +276,9 @@ export default {
                 context.commit('populate_titles', titlesFoundOnPage);
                 
                 let urlIsWhiteListed = context.rootState.pageDetails.isWhiteListed;
-                if (urlIsWhiteListed)
+                let pageHasPotentialTitles = context.rootState.pageDetails.hasPotentialTitles;
+
+                if (urlIsWhiteListed && pageHasPotentialTitles)
                     domHelpers.identifyPotentialTitles();
                 
                 resolve();
