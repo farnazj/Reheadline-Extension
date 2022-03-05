@@ -21,8 +21,8 @@
         <p class="body-2">
            <span class="font-weight-bold">Who do I see alternative headlines from?</span>
             <br>
-          When using this extension, you see headlines posted by the people you follow on <a :href="sourcesLink" class="ml-1 custom-link" target="_blank">{{siteName}}
-          </a>. By default, you follow all the users on {{siteName}}. However, you can unfollow users by clicking on the unfollow button next to their name or you can visit the Users page on <a :href="sourcesLink" class="ml-1 custom-link" target="_blank">{{siteName}}
+          When using this extension, you see headlines posted by the sources you follow or trust on <a :href="sourcesLink" class="ml-1 custom-link" target="_blank">{{siteName}}
+          </a>. You can visit the Sources page on <a :href="sourcesLink" class="ml-1 custom-link" target="_blank">{{siteName}}
           </a> to specify who you want to follow or unfollow.
           <!-- <br> -->
           <!-- However, you can also visit the Options page (by right clicking on the extension's icon on the browser and choosing Options) to select whether you'd like to keep this default or rather see headlines submitted by all the users of the extension. -->

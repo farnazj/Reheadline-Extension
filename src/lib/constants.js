@@ -1,7 +1,8 @@
 //const BASE_URL = `http://localhost:3000`;
 const BASE_URL = `https://developer.trustnet.csail.mit.edu`
 //const CLIENT_URL = `http://localhost:8080`;
-const CLIENT_URL = `https://reheadline.csail.mit.edu`;
+//const CLIENT_URL = `https://reheadline.csail.mit.edu`;
+const CLIENT_URL = `https://trustnet.csail.mit.edu`;
 
 const SITE_NAME = 'Reheadline';
 const LENGTH_TO_HASH = 25;

@@ -30,7 +30,7 @@
               </v-row>
 
               <v-row no-gutters>
-                <a href="https://reheadline.csail.mit.edu/forgot-password" target="_blank">Forgot your password?</a>
+                <a href="https://trustnet.csail.mit.edu/forgot-password" target="_blank">Forgot your password?</a>
               </v-row>
 
             </v-container>
@@ -46,12 +46,12 @@
               <v-card-title primary-title>
                 <h3 class="headline">Or sign up</h3>
               </v-card-title>
-              <p class="caption mb-2">A new tab will open asking you to sign up on the Reheadline platform.</p>
+              <p class="caption mb-2">A new tab will open asking you to sign up on the Trustnet platform.</p>
             </v-row>
 
             <v-row justify="center" no-gutters>
               <v-card-actions>
-                <v-btn tabindex="4" depressed href="https://reheadline.csail.mit.edu/signup" target="_blank">Go to signup</v-btn>
+                <v-btn tabindex="4" depressed href="https://trustnet.csail.mit.edu/signup" target="_blank">Go to signup</v-btn>
               </v-card-actions>
             </v-row>
 
