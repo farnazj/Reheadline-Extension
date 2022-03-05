@@ -11,6 +11,6 @@ new Vue({
   store,
   vuetify,
   render: h => h(insertedApp)
-}).$mount('#app')
+}).$mount('#reheadlineApp')
 
 router.replace('/');

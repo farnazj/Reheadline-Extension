@@ -10,6 +10,6 @@ new Vue({
   store,
   vuetify,
   render: h => h(popupApp)
-}).$mount('#app')
+}).$mount('#reheadlineApp')
 
 router.replace('/');

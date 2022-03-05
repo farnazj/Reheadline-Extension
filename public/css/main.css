@@ -1,3 +1,9 @@
+[data-vuetify-reheadline] #app {
+    width: initial;
+    height: initial;
+    display: initial;
+}
+
 [data-vuetify-reheadline] .v-application--wrap {
     min-height: initial !important;
 }
