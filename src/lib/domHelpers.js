@@ -246,7 +246,7 @@ function findAndReplaceTitle(title, remove, withheld, modifyMode) {
     }
     else {
         results = getElementsContainingText(title.text);
-        results = results.filter(el => !(['SCRIPT', 'TITLE'].includes(el.nodeName)));
+        results = results.filter(el => !(['SCRIPT', 'TITLE'].includes(el.nodeName)) && !el.classList.contains('new-alt-headline') );
     
         console.log('results of looking for elements containing the exact text returned from the server:', results)
         /*
@@ -337,10 +337,12 @@ function findAndReplaceTitle(title, remove, withheld, modifyMode) {
                         el.textContent = "";
 
                         newFirstChild = addAltTitleNodeToHeadline({ altTitle: title, originalTitle: originalTitle });
+
         
                         newSecondChild = document.createElement('del');
                         newSecondChild.classList.add('headline-modified');
                         newSecondChild.appendChild(document.createTextNode(originalTitle));
+
                     }
                     else {
                         //the parent element is given a special class
@@ -626,7 +628,8 @@ function identifyPotentialTitles() {
             
             manipulatedOgTitles.forEach((ogTitle) => {
                 if (ogTitle.length >= consts.MIN_TITLE_LENGTH) {
-                    elResults = getElementsContainingText(ogTitle).filter(el => !(['SCRIPT', 'TITLE'].includes(el.nodeName)));
+                    elResults = getElementsContainingText(ogTitle).filter(el => 
+                        !(['SCRIPT', 'TITLE'].includes(el.nodeName)) && !el.classList.contains('new-alt-headline') );
 
                     console.log('was exact title found', elResults)
                 
@@ -635,7 +638,7 @@ function identifyPotentialTitles() {
                         let similarText = getFuzzyTextSimilarToHeading(ogTitle, false);
                         if (similarText && similarText.length >= consts.MIN_TITLE_LENGTH)
                             elResults = getElementsContainingText(similarText).filter(el => 
-                                !(['SCRIPT', 'TITLE'].includes(el.nodeName)));
+                                !(['SCRIPT', 'TITLE'].includes(el.nodeName)) && !el.classList.contains('new-alt-headline') );
                     }
             
                     console.log(`results of looking for og title ${ogTitle} is` , elResults);
@@ -653,13 +656,15 @@ function identifyPotentialTitles() {
                 let twitterTitle = htmlDecode(document.querySelector('meta[name="twitter:title"]').getAttribute('content'));
 
                 if (twitterTitle.length >= consts.MIN_TITLE_LENGTH) {
-                    elResults = getElementsContainingText(twitterTitle).filter(el => !(['SCRIPT', 'TITLE'].includes(el.nodeName)));
+                    elResults = getElementsContainingText(twitterTitle).filter(el => 
+                        !(['SCRIPT', 'TITLE'].includes(el.nodeName)) && !el.classList.contains('new-alt-headline'));
                 
                     //if the exact twitter title text was not found, look for text that is similar enough
                     if (!elResults.length) {
                         let similarText = getFuzzyTextSimilarToHeading(twitterTitle, false);
                         if (similarText && similarText.length >= consts.MIN_TITLE_LENGTH)
-                            elResults = getElementsContainingText(similarText).filter(el => !(['SCRIPT', 'TITLE'].includes(el.nodeName)));
+                            elResults = getElementsContainingText(similarText).filter(el => 
+                                !(['SCRIPT', 'TITLE'].includes(el.nodeName))  && !el.classList.contains('new-alt-headline'));
                     }
         
                     console.log('results of looking for twitter titles', elResults);
